@@ -6,6 +6,7 @@ Refactoring the Future
 ## Table of Contents
 - [Team](#team)
 - [Project Ideas](#project-ideas)
+- [Meeting Times](#meeting-times)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Features](#features)
@@ -20,6 +21,13 @@ Refactoring the Future
 - [Logo](doc/DESlogo.png)
 - [Letterhead](doc/DES_Letterhead_Template.pdf)
 - [Business Card](doc/business_card.png)
+
+### Meeting Times
+- Monday, 12pm - 1pm
+- Tuesday, 12pm - 1pm
+- Wednesday, 12pm - 1pm
+- Thursday, flex (as needed)
+- Friday, flex (as needed)
 
 ## Project Ideas
 
