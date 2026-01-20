@@ -3,13 +3,16 @@
 ## List of Needs
 
 1. Need \- Ability to take pictures from the app or upload pictures  
-2. Need \- Connect vision AI API to identify pictures for damage cost analysis  
+2. Need \- Identify pictures for damage cost analysis  
 3. Need \- Information on who to connect with in city planning  
 4. Need \- Email City Planning 
 5. Need \- Geolocate issue to be identified on a map
 6. Need \- User registration, email/password
 7. Need \- User authentication, so user can log in
 8. Need \- Ability to flag images/accounts
+9. Need \- Ability to flag/report/ban users for inappropriate names and pictures abuse
+10. Need \- Ability for users to earn a reputation based on how credible their posts are
+11. Need \- User Roles (user/moderator/admin)
 
 
 ## List of Features
@@ -70,4 +73,5 @@
 3. The system must handle failed or unavailable external APIs  
 4. The system with clean UI/UX to make sure the reporting process is fast, easy, and enjoyable, not slogging through forms.   
 5. The system must prevent duplicate infrastructure issue reports for the same location. 
+6. The system must be able to flag/report/ban users for inappropriate names or pictures.
 
