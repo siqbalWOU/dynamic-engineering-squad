@@ -29,7 +29,7 @@
 10. Feature \- Feed of latest finds
 11. Feature \- Flagging system to flag inappropriate posts
 12. Feature \- Maps screen to show infrastructure issues near user
-13. Feature \- 
+13. Feature \- Submitting an infrastructure issue
 
 ## What can a user do with it?
 
