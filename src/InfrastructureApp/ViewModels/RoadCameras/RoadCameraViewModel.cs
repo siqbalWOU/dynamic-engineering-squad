@@ -1,5 +1,6 @@
 using System;
 
+
 namespace InfrastructureApp.ViewModels
 {
     ///This is what the UI understands.

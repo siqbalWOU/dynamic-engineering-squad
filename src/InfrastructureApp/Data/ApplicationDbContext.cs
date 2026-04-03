@@ -97,6 +97,17 @@ namespace InfrastructureApp.Data
 
                 entity.Property(r => r.ImageUrl)
                     .HasMaxLength(450);
+
+                // SHA-256 is stored as a 64-character hex string.
+                entity.Property(r => r.ImageSha256)
+                    .HasMaxLength(64);
+
+                // pHash stored as SQL bigint through C# long.
+                entity.Property(r => r.ImagePHash);
+
+                // Helpful for exact duplicate checks:
+                // "Has this same user already uploaded this same exact image?"
+                entity.HasIndex(r => new { r.UserId, r.ImageSha256 });
             });
 
         }

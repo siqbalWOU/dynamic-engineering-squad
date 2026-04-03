@@ -57,7 +57,9 @@ namespace InfrastructureApp_Tests.Repositories
                 UserId = "user-123",
                 Latitude = 44.85m,
                 Longitude = -123.23m,
-                ImageUrl = "/uploads/issues/test.png"
+                ImageUrl = "/uploads/issues/test.png",
+                ImageSha256 = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                ImagePHash = 444444444L
             };
 
             // Act: add and save
@@ -77,6 +79,9 @@ namespace InfrastructureApp_Tests.Repositories
             Assert.That(fetched.UserId, Is.EqualTo("user-123"));
             Assert.That(fetched.Status, Is.EqualTo("Approved"));
             Assert.That(fetched.ImageUrl, Is.EqualTo("/uploads/issues/test.png"));
+            Assert.That(fetched.ImageSha256,
+                Is.EqualTo("1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"));
+            Assert.That(fetched.ImagePHash, Is.EqualTo(444444444L));
         }
     }
 }

@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using InfrastructureApp.ViewModels;
+using InfrastructureApp.Models;
 using NUnit.Framework;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 
-namespace InfrastructureApp_Tests.ViewModels;
+namespace InfrastructureApp_Tests.Models;
 
 [TestFixture]
-public class ReportIssueViewModelTests
+public class ReportIssueModelTests
 {
     //Creates a list to hold validation errors, checks the object against its DataAnnotations.
     //it validates every property, not just “Required” on the object. Returns the list of validation results (empty list = passes).
@@ -23,15 +23,17 @@ public class ReportIssueViewModelTests
     [Test]
     public void Description_IsRequired()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
-            Description = "",            // invalid
-            Photo = null,                // invalid too, but we assert the description error exists
+            Description = "",   // invalid
+            Photo = null,       // invalid too, but we assert the description error exists
             Latitude = 0,
-            Longitude = 0
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
             r.ErrorMessage != null &&
@@ -42,15 +44,17 @@ public class ReportIssueViewModelTests
     [Test]
     public void Description_TooLong_Fails()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = new string('a', 301), // limit set to 300 characters
             Photo = null,
             Latitude = 0,
-            Longitude = 0
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
             r.ErrorMessage != null &&
@@ -61,15 +65,17 @@ public class ReportIssueViewModelTests
     [Test]
     public void Latitude_OutOfRange_Fails()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = "Valid",
             Photo = null,
-            Latitude = 91,     // invalid
-            Longitude = 0
+            Latitude = 91,   // invalid
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
             r.ErrorMessage != null &&
@@ -80,15 +86,17 @@ public class ReportIssueViewModelTests
     [Test]
     public void Longitude_OutOfRange_Fails()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = "Valid",
             Photo = null,
             Latitude = 0,
-            Longitude = 181     // invalid
+            Longitude = 181,   // invalid
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
             r.ErrorMessage != null &&
@@ -99,58 +107,86 @@ public class ReportIssueViewModelTests
     [Test]
     public void Location_IsRequired_WhenMissing_Fails()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = "Valid",
             Photo = null,
             Latitude = null,
-            Longitude = null
+            Longitude = null,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
-            r.MemberNames.Contains(nameof(ReportIssueViewModel.Latitude)) ||
-            r.MemberNames.Contains(nameof(ReportIssueViewModel.Longitude))));
+            r.MemberNames.Contains(nameof(ReportIssue.Latitude)) ||
+            r.MemberNames.Contains(nameof(ReportIssue.Longitude))));
     }
 
     //if geolocation is provided, test passes
     [Test]
     public void Location_WhenProvided_Passes()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = "Valid",
             Photo = null,
             Latitude = 44.9m,
-            Longitude = -123.0m
+            Longitude = -123.0m,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.None.Matches<ValidationResult>(r =>
-            r.MemberNames.Contains(nameof(ReportIssueViewModel.Latitude)) ||
-            r.MemberNames.Contains(nameof(ReportIssueViewModel.Longitude))));
+            r.MemberNames.Contains(nameof(ReportIssue.Latitude)) ||
+            r.MemberNames.Contains(nameof(ReportIssue.Longitude))));
     }
 
-    //tests whether a photo was not uploaded
+    //tests whether a photo is uploaded when there is no camera image
     [Test]
-    public void Photo_IsRequired()
+    public void Photo_IsRequired_WhenNoCameraImageProvided()
     {
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = "Valid",
-            Photo = null,      // invalid
+            Photo = null,
+            CameraImageUrl = null,
             Latitude = 0,
-            Longitude = 0
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
-            r.MemberNames.Contains(nameof(ReportIssueViewModel.Photo)) &&
+            r.MemberNames.Contains(nameof(ReportIssue.Photo)) &&
             r.ErrorMessage != null &&
             r.ErrorMessage.Contains("Please upload a photo of the damage.")));
+    }
+
+    //tests to make sure that photo is not required when camera image is present
+    [Test]
+    public void Photo_NotRequired_WhenCameraImageProvided()
+    {
+        var report = new ReportIssue
+        {
+            Description = "Valid",
+            Photo = null,
+            CameraImageUrl = "https://example.com/camera.jpg",
+            Latitude = 0,
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending"
+        };
+
+        var results = Validate(report);
+
+        Assert.That(results, Has.None.Matches<ValidationResult>(r =>
+            r.MemberNames.Contains(nameof(ReportIssue.Photo))));
     }
 
     //test whether a photo was provided
@@ -168,17 +204,19 @@ public class ReportIssueViewModelTests
         };
 
         //tests that fake file
-        var vm = new ReportIssueViewModel
+        var report = new ReportIssue
         {
             Description = "Valid",
-            Photo = file,      // valid
+            Photo = file,   // valid
             Latitude = 0,
-            Longitude = 0
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending"
         };
 
-        var results = Validate(vm);
+        var results = Validate(report);
 
         Assert.That(results, Has.None.Matches<ValidationResult>(r =>
-            r.MemberNames.Contains(nameof(ReportIssueViewModel.Photo))));
+            r.MemberNames.Contains(nameof(ReportIssue.Photo))));
     }
 }

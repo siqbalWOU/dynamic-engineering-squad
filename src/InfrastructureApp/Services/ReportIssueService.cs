@@ -2,9 +2,9 @@
 
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
-using InfrastructureApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using InfrastructureApp.Services.Moderation;
+using InfrastructureApp.Services.ContentModeration;
+using InfrastructureApp.Services.ImageHashing;
 
 namespace InfrastructureApp.Services
 {
@@ -14,13 +14,15 @@ namespace InfrastructureApp.Services
         private readonly IReportIssueRepository _reports; //repo to insert/fetch ReportIssue records
         private readonly IWebHostEnvironment _env; //gives access to wwwroot so you can save uploaded files
         private readonly IContentModerationService _moderation; //for openAI moderation of user description
+        private readonly IImageHashService _imageHashService; // computes SHA-256 + pHash for duplicate image detection
 
-        public ReportIssueService(ApplicationDbContext db, IReportIssueRepository reports, IWebHostEnvironment env, IContentModerationService moderation)
+        public ReportIssueService(ApplicationDbContext db, IReportIssueRepository reports, IWebHostEnvironment env, IContentModerationService moderation, IImageHashService imageHashService)
         {
             _db = db;
             _reports = reports;
             _env = env;
             _moderation = moderation;
+            _imageHashService = imageHashService;
         }
 
         //service gets delegated to the repo
@@ -28,7 +30,8 @@ namespace InfrastructureApp.Services
             => _reports.GetByIdAsync(id);
 
         //submit report workflow
-        public async Task<int> CreateAsync(ReportIssueViewModel vm, string userId)
+        //create a report, moderate it, validate image, hash image, reject duplicates, save image, award points
+        public async Task<(int reportId, string status)> CreateAsync(ReportIssue report, string userId)
         {
             //hard coded point rule, can change later
             const int pointsForReport = 10;
@@ -37,88 +40,129 @@ namespace InfrastructureApp.Services
             // 1) Moderation gate (FAIL CLOSED)
             //    Do this BEFORE saving images or touching the DB.
             // ---------------------------------------------------------
-            var description = vm.Description ?? string.Empty;
+            var description = report.Description ?? string.Empty;
 
-            ModerationResult modResult;
-            try
+            // ContentModerationService should now return Performed=false instead of throwing
+            var modResult = await _moderation.CheckAsync(description);
+
+            Console.WriteLine($"[ReportIssue] ModerationResult: Performed={modResult.Performed}, IsAllowed={modResult.IsAllowed}, Flagged={modResult.Flagged}, Reason={modResult.Reason ?? "(none)"}");
+
+            if (!modResult.Performed)
             {
-                modResult = await _moderation.CheckAsync(description);
+                // Moderation didn't actually run (startup/network/429/etc).
+                // FAIL SAFE: do not publish publicly.
+                // We will still accept the submission but keep it hidden until reviewed.
             }
-            catch (Exception ex)
+            else if (!modResult.IsAllowed)
             {
-                // If moderation service is down / errors out, we do NOT allow submission.
-                // This matches your acceptance criteria: "If moderation check fails, report does not submit/save."
-                throw new InvalidOperationException(
-                    "Moderation service is unavailable. Please try again in a moment.",
-                    ex
-                );
-
-                // // TEMP: show real reason during debugging                               //for debugging purposes can delete later
-                // throw new InvalidOperationException(
-                //     $"Moderation failed: {ex.Message}",
-                //     ex
-                // );
-            }
-
-            if (!modResult.IsAllowed)
-            {
-                throw new ModerationRejectedException(
+                // Moderation ran and flagged content
+                throw new ContentModerationRejectedException(
                     "Your description contains unsafe content and cannot be submitted.",
-                    modResult.ReasonCategory
+                    modResult.Reason
                 );
             }
 
             // ---------------------------------------------------------
-            // 2) Save file (local) — only after moderation is SAFE
+            // 2) Validate image + compute hashes + reject duplicates
             // ---------------------------------------------------------
+
             string? savedImagePath = null;
 
-            if (vm.Photo != null && vm.Photo.Length > 0)
+            if (report.Photo != null && report.Photo.Length > 0)
             {
                 var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-                var ext = Path.GetExtension(vm.Photo.FileName).ToLowerInvariant();
+                var ext = Path.GetExtension(report.Photo.FileName).ToLowerInvariant();
 
-                //validates extensions
+                // Validate extension
                 if (!allowedExts.Contains(ext))
                     throw new InvalidOperationException("Only JPG, PNG, or WEBP images are allowed.");
 
-                //validates image size
+                // Validate size
                 const long maxBytes = 5 * 1024 * 1024;
-                if (vm.Photo.Length > maxBytes)
+                if (report.Photo.Length > maxBytes)
                     throw new InvalidOperationException("Image must be 5MB or smaller.");
 
-                //save folder for images
+                // -----------------------------------------------------
+                // Compute BOTH hashes from the uploaded image
+                // BEFORE saving the file to disk.
+                // -----------------------------------------------------
+                await using var uploadStream = report.Photo.OpenReadStream();
+                ImageHashResult hashes = await _imageHashService.ComputeHashesAsync(uploadStream);
+
+                // -----------------------------------------------------
+                // EXACT duplicate check:
+                // same user + same SHA-256 = same exact file
+                // -----------------------------------------------------
+                bool exactDuplicateExists = await _db.ReportIssue
+                    .AnyAsync(r =>
+                        r.UserId == userId &&
+                        r.ImageSha256 == hashes.Sha256);
+
+                if (exactDuplicateExists)
+                {
+                    throw new DuplicateImageException(
+                        "You already used this image in a previous report. Please upload a different image.");
+                }
+
+                // -----------------------------------------------------
+                // VISUAL similarity check:
+                // compare new pHash against the same user's earlier pHashes
+                // -----------------------------------------------------
+                List<long> priorPHashes = await _db.ReportIssue
+                    .Where(r => r.UserId == userId && r.ImagePHash.HasValue)
+                    .Select(r => r.ImagePHash!.Value)
+                    .ToListAsync();
+
+                // Starting threshold:
+                // smaller = stricter
+                // larger = more tolerant
+                //
+                // 8 is a practical starting point.
+                const int pHashThreshold = 8;
+
+                foreach (long previousHash in priorPHashes)
+                {
+                    int distance = _imageHashService.HammingDistance(hashes.PHash, previousHash);
+
+                    if (distance <= pHashThreshold)
+                    {
+                        throw new DuplicateImageException(
+                            "This image looks too similar to one you already uploaded. Please use a different image.");
+                    }
+                }
+
+                // -----------------------------------------------------
+                // Save file only AFTER duplicate/moderation checks pass
+                // -----------------------------------------------------
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "issues");
                 Directory.CreateDirectory(uploadsFolder);
 
                 var fileName = $"{Guid.NewGuid()}{ext}";
                 var fullPath = Path.Combine(uploadsFolder, fileName);
 
-                //save the image
                 using (var stream = File.Create(fullPath))
                 {
-                    await vm.Photo.CopyToAsync(stream);
+                    await report.Photo.CopyToAsync(stream);
                 }
 
                 savedImagePath = $"/uploads/issues/{fileName}";
-            }
 
+                // Save the hashes onto the report row so we can compare future uploads.
+                report.ImageSha256 = hashes.Sha256;
+                report.ImagePHash = hashes.PHash;
+            }
 
             //starts database transaction, saves it if everything completes otherwise gives an error
             await using var tx = await _db.Database.BeginTransactionAsync();
 
             try
             {
-                var report = new ReportIssue
-                {
-                    Description = vm.Description,
-                    Latitude = vm.Latitude,
-                    Longitude = vm.Longitude,
-                    ImageUrl = savedImagePath,
-                    Status = "Approved",
-                    CreatedAt = DateTime.UtcNow,
-                    UserId = userId
-                };
+                report.ImageUrl = savedImagePath;
+                report.Status = modResult.Performed ? "Approved" : "Pending";
+                report.CreatedAt = DateTime.UtcNow;
+                report.UserId = userId;
+
+                Console.WriteLine($"[ReportIssue] Saving report with Status={report.Status}");
 
                 await _reports.AddAsync(report);
                 await _reports.SaveChangesAsync(); // report.Id now populated
@@ -137,14 +181,19 @@ namespace InfrastructureApp.Services
                     _db.UserPoints.Add(userPoints);
                 }
 
-                userPoints.CurrentPoints += pointsForReport;
-                userPoints.LifetimePoints += pointsForReport;
-                userPoints.LastUpdated = DateTime.UtcNow;
-
+                if (modResult.Performed)
+                {
+                    userPoints.CurrentPoints += pointsForReport;
+                    userPoints.LifetimePoints += pointsForReport;
+                    userPoints.LastUpdated = DateTime.UtcNow;
+                }
+                
+                // One save no matter what (report + maybe points)
                 await _db.SaveChangesAsync();
+                
                 await tx.CommitAsync();
 
-                return report.Id;
+                return (report.Id, report.Status);
             }
             catch
             {

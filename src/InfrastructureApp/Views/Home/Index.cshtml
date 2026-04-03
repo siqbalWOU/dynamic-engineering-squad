@@ -17,7 +17,7 @@
 </div>
 
 <div class="text-center mb-4">
-    <a href="/Leaderboard" class="btn btn-success btn-lg fw-bold">
+    <a asp-controller="Leaderboard" asp-action="Index" class="btn btn-success btn-lg fw-bold">
         <i class="fa-solid fa-trophy me-2"></i> View Leaderboard
     </a>
 </div>
@@ -30,7 +30,7 @@
                 <i class="fa-solid fa-camera fa-4x mb-3 text-info"></i>
                 <h2 class="card-title">Report Issue</h2>
                 <p class="card-text">Spot a pothole or broken light? Snap it, tag it, claim the bounty.</p>
-                <a href="/ReportIssue/ReportIssue" class="btn btn-lg btn-info mt-auto fw-bold">Start Quest</a>
+                <a asp-controller="ReportIssue" asp-action="Create" class="btn btn-lg btn-info mt-auto fw-bold">Start Quest</a>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
                 <i class="fa-solid fa-check-double fa-4x mb-3 text-warning"></i>
                 <h2 class="card-title">Verify Fixes</h2>
                 <p class="card-text">Confirm repairs made by the city to earn Reputation Points.</p>
-                <a href="/Reports/Verify" class="btn btn-lg btn-warning mt-auto fw-bold text-dark">Verify Now</a>
+                <a asp-controller="Reports" asp-action="Verify" class="btn btn-lg btn-warning mt-auto fw-bold text-dark">Verify Now</a>
             </div>
         </div>
     </div>

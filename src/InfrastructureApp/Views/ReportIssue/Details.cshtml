@@ -29,17 +29,28 @@
         <div class="mt-3">
             <p><strong>Location on map:</strong></p>
 
-            <div id="submittedMap"
-                data-lat="@Model.Latitude"
-                data-lng="@Model.Longitude"
-                style="height:320px; width:100%; border-radius:12px;">
+            <div id="submittedMap"   data-lat="@Model.Latitude"    data-lng="@Model.Longitude"
+                 style="height:320px; width:100%; border-radius:12px;">
             </div>
         </div>
 
         @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
         {
             <p><strong>Image:</strong></p>
-            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="Uploaded issue photo" />
+
+            <!-- SCRUM-102 ADDED: hide broken image and show fallback message -->
+            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="Uploaded issue photo"
+                 onerror="this.classList.add('d-none'); document.getElementById('detailsImageFallback').classList.remove('d-none');" />
+
+            <!-- SCRUM-102 ADDED: shown only if the image file cannot be loaded -->
+            <p id="detailsImageFallback" class="text-muted d-none">
+                Image could not be loaded.
+            </p>
+        }
+        else
+        {
+            <!-- SCRUM-102 ADDED: fallback when no image URL exists -->
+            <p class="text-muted">No image was provided for this report.</p>
         }
     </div>
 
@@ -56,10 +67,18 @@
         aria-label="Return to the home page">
             Back to Home
         </a>
+
+        <a class="btn report-action-btn"
+        asp-controller="Reports"
+        asp-action="Latest"
+        aria-label="Return to latest reports">
+            View Another Report
+        </a>
     </div>
 </div>
 
-
+<!-- Canvas is OUTSIDE the container so viewport units work correctly -->
+<canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;display:none;"></canvas>
 
 @section Scripts {
 
@@ -69,4 +88,11 @@
         src="https://maps.googleapis.com/maps/api/js?key=@GoogleMaps.Value.ApiKey&callback=initSubmittedMap">
     </script>
 
+     <script src="~/js/confetti.js"></script>
+
+        @if (TempData["Success"] != null)
+        {
+            <text><script>setTimeout(launchConfetti, 500);</script></text>
+        }
+    
 }

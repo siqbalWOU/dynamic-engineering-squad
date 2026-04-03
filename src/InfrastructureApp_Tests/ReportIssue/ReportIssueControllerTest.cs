@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 using InfrastructureApp.Controllers;
 using InfrastructureApp.Models;
 using InfrastructureApp.Services;
-using InfrastructureApp.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using NSubstitute;
 using NUnit.Framework;
+using InfrastructureApp.Services.ImageHashing;
 
 namespace InfrastructureApp_Tests
 {
@@ -96,18 +96,43 @@ namespace InfrastructureApp_Tests
             Assert.That(result, Is.TypeOf<ViewResult>());
         }
 
-        //get returns a view which has a model and the model is a fresh reportIssueViewModel
         [Test]
-        public void Create_Get_ReturnsView_WithNewViewModel()
+        public void Create_Get_ReturnsView_WithNewModel()
         {
             var controller = MakeController();
 
-            var result = controller.Create();
+            var result = controller.Create(null, null, null, null);
 
             Assert.That(result, Is.TypeOf<ViewResult>());
             var view = (ViewResult)result;
-            Assert.That(view.Model, Is.TypeOf<ReportIssueViewModel>());
+            Assert.That(view.Model, Is.TypeOf<ReportIssue>());
+
+            var model = (ReportIssue)view.Model!;
+            Assert.That(model.CameraId, Is.Null);
+            Assert.That(model.CameraImageUrl, Is.Null);
+            Assert.That(model.Latitude, Is.Null);
+            Assert.That(model.Longitude, Is.Null);
         }
+
+        [Test]
+        public void Create_Get_WithQueryValues_PopulatesModel()
+        {
+            var controller = MakeController();
+
+            var result = controller.Create("cam-1", "img-url", 44.85m, -123.23m);
+
+            Assert.That(result, Is.TypeOf<ViewResult>());
+            var view = (ViewResult)result;
+            Assert.That(view.Model, Is.TypeOf<ReportIssue>());
+
+            var model = (ReportIssue)view.Model!;
+            Assert.That(model.CameraId, Is.EqualTo("cam-1"));
+            Assert.That(model.CameraImageUrl, Is.EqualTo("img-url"));
+            Assert.That(model.Latitude, Is.EqualTo(44.85m));
+            Assert.That(model.Longitude, Is.EqualTo(-123.23m));
+        }
+
+
 
         // -------------------------
         // POST Create tests
@@ -118,15 +143,15 @@ namespace InfrastructureApp_Tests
         public async Task Create_Post_InvalidModelState_ReturnsView_DoesNotCallService()
         {
             var controller = MakeController();
-            var vm = new ReportIssueViewModel();
+            var report = new ReportIssue();
 
             controller.ModelState.AddModelError("Description", "Required");
 
-            var result = await controller.Create(vm);
+            var result = await controller.Create(report);
 
             Assert.That(result, Is.TypeOf<ViewResult>());
             var view = (ViewResult)result;
-            Assert.That(view.Model, Is.SameAs(vm));
+            Assert.That(view.Model, Is.SameAs(report));
 
             await _service.DidNotReceiveWithAnyArgs().CreateAsync(default!, default!);
         }
@@ -140,12 +165,13 @@ namespace InfrastructureApp_Tests
             var controller = MakeController(principal);
 
             _userManager.GetUserId(Arg.Any<ClaimsPrincipal>()).Returns("user-abc");
-            _service.CreateAsync(Arg.Any<ReportIssueViewModel>(), "user-abc").Returns(123);
+            _service.CreateAsync(Arg.Any<ReportIssue>(), "user-abc")
+                .Returns(Task.FromResult((reportId: 123, status: "Approved")));
 
-            var vm = new ReportIssueViewModel(); // ModelState is valid unless you add errors in unit tests
+            var report = new ReportIssue(); // ModelState is valid unless you add errors in unit tests
 
             // Act
-            var result = await controller.Create(vm);
+            var result = await controller.Create(report);
 
             // Assert
             Assert.That(result, Is.TypeOf<RedirectToActionResult>());
@@ -157,7 +183,7 @@ namespace InfrastructureApp_Tests
 
             Assert.That(controller.TempData["Success"], Is.EqualTo("XP gained! +10 points awarded."));
 
-            await _service.Received(1).CreateAsync(vm, "user-abc");
+            await _service.Received(1).CreateAsync(report, "user-abc");
         }
 
         //when userId is null, goes to default user-guid-001, controller doesn't crash if no authenticated user
@@ -168,16 +194,17 @@ namespace InfrastructureApp_Tests
             var controller = MakeController(); // no user set
             _userManager.GetUserId(Arg.Any<ClaimsPrincipal>()).Returns((string?)null);
 
-            _service.CreateAsync(Arg.Any<ReportIssueViewModel>(), "user-guid-001").Returns(55);
+            _service.CreateAsync(Arg.Any<ReportIssue>(), "user-guid-001")
+                .Returns(Task.FromResult((reportId: 55, status: "Approved")));
 
-            var vm = new ReportIssueViewModel();
+            var report = new ReportIssue();
 
             // Act
-            var result = await controller.Create(vm);
+            var result = await controller.Create(report);
 
             // Assert
             Assert.That(result, Is.TypeOf<RedirectToActionResult>());
-            await _service.Received(1).CreateAsync(vm, "user-guid-001");
+            await _service.Received(1).CreateAsync(report, "user-guid-001");
         }
 
 
@@ -189,14 +216,14 @@ namespace InfrastructureApp_Tests
             var controller = MakeController();
             _userManager.GetUserId(Arg.Any<ClaimsPrincipal>()).Returns("user-123");
 
-            _service.CreateAsync(Arg.Any<ReportIssueViewModel>(), Arg.Any<string>())
-                    .Returns<Task<int>>(_ => Task.FromException<int>(
-                        new InvalidOperationException("attach a photo")));
+            _service.CreateAsync(Arg.Any<ReportIssue>(), Arg.Any<string>())
+                .Returns(_ => Task.FromException<(int reportId, string status)>(
+                    new InvalidOperationException("attach a photo")));
 
-            var vm = new ReportIssueViewModel();
+            var report = new ReportIssue();
 
             // Act
-            var result = await controller.Create(vm);
+            var result = await controller.Create(report);
 
             // Assert
             Assert.That(result, Is.TypeOf<ViewResult>());
@@ -217,14 +244,14 @@ namespace InfrastructureApp_Tests
             var controller = MakeController();
             _userManager.GetUserId(Arg.Any<ClaimsPrincipal>()).Returns("user-123");
 
-            _service.CreateAsync(Arg.Any<ReportIssueViewModel>(), Arg.Any<string>())
-                    .Returns<Task<int>>(_ => Task.FromException<int>(
-                        new Exception("db down")));
+            _service.CreateAsync(Arg.Any<ReportIssue>(), Arg.Any<string>())
+                .Returns(_ => Task.FromException<(int reportId, string status)>(
+                    new Exception("db down")));
 
-            var vm = new ReportIssueViewModel();
+            var report = new ReportIssue();
 
             // Act
-            var result = await controller.Create(vm);
+            var result = await controller.Create(report);
 
             // Assert
             Assert.That(result, Is.TypeOf<ViewResult>());
@@ -236,6 +263,31 @@ namespace InfrastructureApp_Tests
             Assert.That(errors, Is.Not.Empty);
             Assert.That(errors[0].ErrorMessage,
                 Is.EqualTo("Something went wrong saving your report. Please try again."));
+        }
+
+        //tests the error when a user submits duplicate images
+        [Test]
+        public async Task Create_Post_WhenServiceThrowsDuplicateImage_AddsPhotoModelError_ReturnsView()
+        {
+            var controller = MakeController();
+            _userManager.GetUserId(Arg.Any<ClaimsPrincipal>()).Returns("user-123");
+
+            _service.CreateAsync(Arg.Any<ReportIssue>(), Arg.Any<string>())
+                .Returns(_ => Task.FromException<(int reportId, string status)>(
+                    new DuplicateImageException("You already used this image in a previous report. Please upload a different image.")));
+
+            var report = new ReportIssue();
+
+            var result = await controller.Create(report);
+
+            Assert.That(result, Is.TypeOf<ViewResult>());
+            Assert.That(controller.ModelState.IsValid, Is.False);
+
+            Assert.That(controller.ModelState.ContainsKey(nameof(report.Photo)), Is.True);
+
+            var errors = controller.ModelState[nameof(report.Photo)]!.Errors;
+            Assert.That(errors, Is.Not.Empty);
+            Assert.That(errors[0].ErrorMessage, Does.Contain("already used this image"));
         }
 
         // -------------------------

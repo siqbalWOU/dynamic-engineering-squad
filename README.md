@@ -1,3 +1,5 @@
+<!-- TEST 3/7>
+
 <!-- omit in toc -->
 # Dynamic Engineering Squad
 Refactoring the Future
@@ -39,3 +41,4 @@ This project is a gamified ASP.NET infrastructure reporting application defined 
 ### Sprint Retrospectives
 - [Sprint 1](./doc/sprint_retrospectives/sprint1_retrospective.md)
 - [Sprint 2](./doc/sprint_retrospectives/sprint2_retrospective.md)
+- [Sprint 3](./doc/sprint_retrospectives/sprint3_retrospective.md)

@@ -1,21 +1,24 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http;
 
 namespace InfrastructureApp.Models
 {
     //This maps to the ERD's Report Table
-    public class ReportIssue
+    public class ReportIssue : IValidatableObject
     {
         //PK Identity
         public int Id { get; set; }
 
         //NVARCHAR(MAX)
-        [Required]
-        [StringLength(300)]
-        public string Description { get; set; } = "";
+        [Required(ErrorMessage = "Please enter a description.")]
+        [StringLength(300, ErrorMessage = "Description must be 300 characters or less.")]
+        [MaxLength(300, ErrorMessage = "Description must be 300 characters or less.")]
+        [Display(Name = "Description")]
+        public string Description { get; set; } = string.Empty;
 
         //NVARCHAR(50): Pending, Approved, Rejected
-        [Required]
         [MaxLength(50)]
 
         public string Status { get; set; } = "Approved";
@@ -24,20 +27,79 @@ namespace InfrastructureApp.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         //FK to ApsNetUser.Id (nvarchar(450))
-        [Required]
         public string UserId { get; set; } = "";
 
         //DECIMAL(9,6)
-        [Range(-90, 90)]
+        //[Required(ErrorMessage = "Please select a location on the map to populate Latitude.")]   //for testing
+        [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90.")]
         public decimal? Latitude { get; set; }
 
         //DECIMAL (9,6)
-        [Range(-180, 180)]
+        //[Required(ErrorMessage = "Please select a location on the map to populate Longitude.")]   //for testing
+        [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180.")]
         public decimal? Longitude { get; set; }
 
         //NVARCHAR(450) (URL to blob)
         [MaxLength(450)]
         public string? ImageUrl { get; set; }
+
+        // SHA-256 hash stored as a 64-character hex string.
+        // This is for EXACT duplicate detection.
+        [MaxLength(64)]
+        public string? ImageSha256 { get; set; }
+
+        // Stores the perceptual hash as a signed 64-bit integer.
+        // Perceptual hash stored as long (SQL bigint).
+        // This is for VISUAL similarity detection.
+        public long? ImagePHash { get; set; }
+
+
+        // ----------------------------------------------------
+        // UI-only properties for form submission
+        // Not mapped to the database
+        // ----------------------------------------------------
+
+        [Display(Name = "Photo")]
+        [NotMapped]
+        public IFormFile? Photo { get; set; }
+
+        [NotMapped]
+        public string? CameraId { get; set; }
+
+        [NotMapped]
+        public string? CameraImageUrl { get; set; }
+
+        // ----------------------------------------------------
+        // Conditional validation for form submission
+        // Require either an uploaded photo OR a camera image URL
+        // ----------------------------------------------------
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var hasUploadedPhoto = Photo != null && Photo.Length > 0;
+            var hasCameraImage = !string.IsNullOrWhiteSpace(CameraImageUrl);
+
+            if (!hasUploadedPhoto && !hasCameraImage)
+            {
+                yield return new ValidationResult(
+                    "Please upload a photo of the damage.",
+                    new[] { nameof(Photo) });
+            }
+
+            if (Latitude == null)
+            {
+                yield return new ValidationResult(
+                    "Please select a location on the map to populate Latitude.",
+                    new[] { nameof(Latitude) });
+            }
+
+            if (Longitude == null)
+            {
+                yield return new ValidationResult(
+                    "Please select a location on the map to populate Longitude.",
+                    new[] { nameof(Longitude) });
+            }
+        }
+
 
         // ----------------------------------------------------
         // Report query helpers

@@ -62,12 +62,15 @@
                         avatarUrl = AvatarCatalog.ToUrl(currentUser?.AvatarKey);
                     }
                 }
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="d-flex align-items-center gap-2">
 
-                <div class="d-flex align-items-center gap-2">
-                    <img src="@avatarUrl"
-                        alt="Avatar"
-                        style="width:34px;height:34px;border-radius:50%;object-fit:cover;" />
-                </div>
+                        <img src="@avatarUrl"
+                             alt="Avatar"
+                             style="width:34px;height:34px;border-radius:50%;object-fit:cover;"/>
+                    </div>
+                }
                 <div class="d-flex align-items-center gap-2">
              
                     @await Component.InvokeAsync(typeof(UserAvatarViewComponent))
@@ -80,72 +83,47 @@
                 <div class="collapse navbar-collapse" id="gameMenu">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" href="/Home/Index"><i class="fa-solid fa-map"></i> Home</a>
+                            <a class="nav-link" href="/Home/Index"><i class="fa-solid fa-map"></i> Home</a>
                         </li>
-
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="ReportIssue" asp-action="ReportIssue">
+                                    <i class="fa fa-car"></i> Report Issue
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/Achievements"><i class="fa-solid fa-medal"></i> Badges</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="RoadCamera" asp-action="Index"><i class="fa-solid fa-video"></i> Road Cameras </a>
+                            </li>
+                        }   
                         <li class="nav-item">
                             <a class="nav-link" href="/Reports/Latest">
                                 <i class="fa-solid fa-scroll"></i> Latest
                                 Reports
                             </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Achievements"><i class="fa-solid fa-medal"></i> Badges</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="RoadCamera" asp-action="Index"><i class="fa-solid fa-video"></i> Road Cameras </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="ReportIssue" asp-action="ReportIssue">
-                            <i class="fa fa-car"></i> Report Issue
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="NearbyIssue" asp-action="Index">
-                            <i class="fa-solid fa-map-pin"></i> Nearby Issues
-                        </a>
-                    </li>
-                     @if (User?.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="ChooseAvatar"><i class="fa-solid fa-user"></i> Choose Avatar</a>
-                            </li>
-                        }
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="NearbyIssue" asp-action="Index">
+                                <i class="fa-solid fa-map-pin"></i> Nearby Issues
+                            </a>
+                        </li>
+                         @if (User?.Identity?.IsAuthenticated == true)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Account" asp-action="ChooseAvatar"><i class="fa-solid fa-user"></i> Choose Avatar</a>
+                                </li>
+                                if (User.IsInRole("Admin"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Account" asp-action="Admin"><i class="fa-solid fa-arrow-pointer"></i> Admin Page</a>
+                                    </li>
+                                }
+                            }
                     </ul>
                     <partial name="_LoginPartial" />
-
-                    @*     <ul class="navbar-nav d-flex align-items-center text-light gap-3"> *@
-                    @*         @* <div class="d-none d-lg-block"> *@
-                    @*     <span class="user-level-badge">Lvl 14</span> *@
-                    @*     <span class="ms-2">XP:</span> *@
-                    @*     <div class="xp-bar"><div class="xp-fill"></div></div> *@
-                    @* </div> *@
-                    @*     <li class="nav-item d-flex align-items-center"> *@
-                    @*         <div id="google_translate_element"></div> *@
-                    @*     </li> *@
-                    @* *@
-                    @*     <li class="nav-item"> *@
-                    @*         <a class="nav-link text-light" asp-controller="Account" asp-action="Login"> *@
-                    @*             Login *@
-                    @*         </a> *@
-                    @*     </li> *@
-                    @*     <li class="nav-item"> *@
-                    @*         <a class="nav-link text-light" asp-controller="Account" asp-action="Register"> *@
-                    @*             Register *@
-                    @*         </a> *@
-                    @*     </li> *@
-                    @*     @* <div class="dropdown"> *@
-                    @*     <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> *@
-                    @*         <i class="fa-solid fa-user-astronaut"></i> PlayerOneZeroOne *@
-                    @*     </a> *@
-                    @*     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark"> *@
-                    @*         <li><a class="dropdown-item" href="/Profile">Character Sheet (Profile)</a></li> *@
-                    @*         <li><a class="dropdown-item" href="/Settings">Config</a></li> *@
-                    @*         <li><hr class="dropdown-divider"></li> *@
-                    @*         <li><a class="dropdown-item text-danger" href="/Account/Logout">Log Out</a></li> *@
-                    @*     </ul> *@
-                    @* </div> *@
-                    @* </ul> *@
                 </div>
                 </div>
             </nav>
@@ -172,7 +150,6 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="~/js/site.js" asp-append-version="true"></script>
 
-        @await RenderSectionAsync(name: "Scripts", required: false)
 
         <!-- Google Translate initialization -->
         <script>
@@ -191,6 +168,9 @@
 
         <!-- Google Translate loader -->
         <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+        @await RenderSectionAsync(name: "Scripts", required: false)
+        
     </body>
 
 </html>

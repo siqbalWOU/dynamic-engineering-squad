@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using InfrastructureApp.Services;
 
-namespace InfrastructureApp_Tests;
+namespace InfrastructureApp_Tests.Account;
 
 [TestFixture]
 public class AccountControllerTests
@@ -18,6 +18,7 @@ public class AccountControllerTests
     private Mock<UserManager<Users>> _mockUserManager;
     private Mock<SignInManager<Users>> _mockSignInManager;
     private Mock<IAvatarService> _mockAvatarService;
+    private Mock<IUserService> _mockUserService;
     private AccountController _controller;
 
     [SetUp]
@@ -35,7 +36,8 @@ public class AccountControllerTests
             new Mock<IUserConfirmation<Users>>().Object
         );
         _mockAvatarService = new Mock<IAvatarService>();
-        _controller = new AccountController(_mockUserManager.Object, _mockSignInManager.Object, _mockAvatarService.Object);
+        _mockUserService = new Mock<IUserService>();
+        _controller = new AccountController(_mockUserManager.Object, _mockSignInManager.Object, _mockAvatarService.Object, _mockUserService.Object);
     }
 
     [TearDown]

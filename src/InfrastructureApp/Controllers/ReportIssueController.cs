@@ -2,82 +2,133 @@
 
 using InfrastructureApp.Models;
 using InfrastructureApp.Services;
-using InfrastructureApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using InfrastructureApp.Services.Moderation;
+using InfrastructureApp.Services.ContentModeration;
+using InfrastructureApp.Services.ImageHashing;
 
 namespace InfrastructureApp.Controllers
 {
     public class ReportIssueController : Controller
     {
         //dependency injection (business logic + identity for users)
-        private readonly IReportIssueService _reportService;
+        private readonly IReportIssueService _service;
         private readonly UserManager<Users> _userManager;
 
-        public ReportIssueController(IReportIssueService reportService, UserManager<Users> userManager)
+        public ReportIssueController(IReportIssueService service, UserManager<Users> userManager)
         {
-            _reportService = reportService;
+            _service = service;
             _userManager = userManager;
         }
 
         //landing page
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public IActionResult ReportIssue() => View();
 
         //shows the form to create a report +creates a fresh reportIssueViewModel and passes it into the view
         [HttpGet]
-        public IActionResult Create() => View(new ReportIssueViewModel());
+        [Authorize]
+        public IActionResult Create(string? cameraId, string? imageUrl, decimal? lat, decimal? lng)
+        {
+            var report = new ReportIssue
+            {
+                CameraId = cameraId,
+                CameraImageUrl = imageUrl,
+                Latitude = lat,
+                Longitude = lng
+            };
+
+            return View(report);
+        }
 
         //runs when user submits the form
         [HttpPost]
-        [AllowAnonymous] // later: [Authorize for users]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ReportIssueViewModel vm)
+        [Authorize]
+        public async Task<IActionResult> Create(ReportIssue report)
         {
+            // Check if the submitted form data failed validation
+            // ModelState contains the results of all DataAnnotations validation
+            // (Required, Range, StringLength, custom validation, etc.)
             if (!ModelState.IsValid)
-                return View(vm);
+            {
+                //for testing validation errors
+                // ModelState is a dictionary:
+                // Key   = the name of the property (ex: "UserId", "Description")
+                // Value = validation state + list of errors for that property
+                foreach (var kvp in ModelState)
+                {
+                    // kvp.Key = the property name that failed validation
+                    // Example: "UserId", "Latitude", "Photo"
+                    var key = kvp.Key;
 
-            // Prefer real user if authenticated, testing user-guid-001 for now
-            var userId = _userManager.GetUserId(User) ?? "user-guid-001";
+                    // kvp.Value.Errors = a list of validation errors for that property
+                    // A property can have multiple errors (for example Required + Range)
+                    var errors = kvp.Value.Errors;
+
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine($"[ModelState] Key={key}, Error={error.ErrorMessage}");
+                    }
+                }
+
+
+                // If validation failed, return the form view again
+                // and pass the current model (report) back to the view.
+                // This allows the user to see validation errors and fix them.
+                return View(report);
+            }
+
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+                userId = "user-guid-001";
 
             try
             {
-                //creating report
-                var reportId = await _reportService.CreateAsync(vm, userId);
-                TempData["Success"] = "XP gained! +10 points awarded.";
-                return RedirectToAction(nameof(Details), new { id = reportId });
+                
+                var (reportId, status) = await _service.CreateAsync(report, userId);
+
+                TempData["Success"] = status == "Approved"
+                    ? "XP gained! +10 points awarded."
+                    : "Report submitted! It will appear on the map once moderation is complete.";
+
+                TempData["SubmissionSuccess"] = true;   
+
+                return RedirectToAction("Details", new { id = reportId });
             }
-            catch (ModerationRejectedException)
+            catch (DuplicateImageException ex)
             {
-                // This comes from the service when content is unsafe.
-                // Put the error ON the Description field so it shows next to the textbox.
-                ModelState.AddModelError(nameof(vm.Description), "Your description contains unsafe content and cannot be submitted.");
-                return View(vm);
+                // Attach the message to the Photo field so it shows near the upload UI.
+                ModelState.AddModelError(nameof(report.Photo), ex.Message);
+                return View(report);
+            }
+            catch (ContentModerationRejectedException)
+            {
+                ModelState.AddModelError(nameof(report.Description), "Your description contains unsafe content and cannot be submitted.");
+                return View(report);
             }
             catch (InvalidOperationException ex)
             {
-                //catch errors (missing photo, duplicate image, coordinate)
-                ModelState.AddModelError("", ex.Message);
-                return View(vm);
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(report);
             }
             catch
             {
-                //catch unexpected errors
-                ModelState.AddModelError("", "Something went wrong saving your report. Please try again.");
-                return View(vm);
+                ModelState.AddModelError(string.Empty, "Something went wrong saving your report. Please try again.");
+                return View(report);
             }
+
+
         }
 
         //Shows the details page for a specific report id.
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
             // Load report through the service layer; return 404 if it doesn't exist.
-            var report = await _reportService.GetByIdAsync(id);
+            var report = await _service.GetByIdAsync(id);
             if (report == null) return NotFound();
 
             return View(report);

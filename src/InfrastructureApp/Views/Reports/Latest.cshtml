@@ -1,3 +1,8 @@
+@using InfrastructureApp.Configuration
+@using Microsoft.Extensions.Options
+<!--injects API key, avoids using viewbag-->
+@inject IOptions<GoogleMapsOptions> GoogleMaps
+
 @model InfrastructureApp.ViewModels.LatestReportsViewModel
 
 @{
@@ -16,8 +21,8 @@
 
 <!-- SCRUM-86 ADDED: Sort dropdown allows user to select newest or oldest -->
 <select id="latestSortSelect" class="form-select" style="max-width: 200px;">
-  <option value="newest" selected>Newest first</option>
-  <option value="oldest">Oldest first</option>
+    <option value="newest" selected>Newest first</option>
+    <option value="oldest">Oldest first</option>
 </select>
 
 @if (Model.Reports == null || !Model.Reports.Any())
@@ -34,12 +39,8 @@ else
         {
             <button type="button"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-start report-item"
-                    data-bs-toggle="modal"
-                    data-bs-target="#reportModal"
-                    data-description="@r.Description"
-                    data-created="@r.CreatedAt.ToLocalTime().ToString("f")"
-                    data-status="@r.Status"
-                    data-image="@r.ImageUrl">
+                    data-bs-toggle="modal" data-bs-target="#reportModal" data-reportid="@r.Id" data-description="@r.Description"
+                    data-created="@r.CreatedAt.ToLocalTime().ToString("f")" data-status="@r.Status" data-image="@r.ImageUrl">
 
                 <div class="me-3">
                     <div class="fw-bold">@r.Description</div>
@@ -64,12 +65,12 @@ else
             </div>
 
             <div class="modal-body">
-                
+
                 <p class="mb-1"><strong>Image</strong></p>
-                <img id="modalImage"   class="img-fluid rounded border d-none mb-3" alt="Report image" />
-                <p id="modalImageFallback" class="text-muted mb-3 d-none">
-                    No image was provided for this report.
-                </p>
+                <img id="modalImage" class="img-fluid rounded border d-none mb-3" alt="Report image" />
+                <div id="modalImageFallback" class="alert alert-info d-none mb-3" role="alert">
+                    <strong>📷 No image available.</strong> This report was submitted without an image.
+                </div>
 
                 <p class="mb-1"><strong>Description</strong></p>
                 <p id="modalDescription" class="mb-3"></p>
@@ -79,17 +80,31 @@ else
 
                 <p class="mb-1"><strong>Status</strong></p>
                 <p id="modalStatus" class="mb-0"></p>
+
+                <p class="mb-1 mt-3"><strong>Location on map</strong></p>
+                <div id="modalReportMap" class="rounded border mb-3" style="height: 250px; width: 100%; display: none;">
+                </div>
+                <p id="modalMapFallback" class="text-muted mb-0 d-none">
+                    Location is not available for this report.
+                </p>
             </div>
 
             <div class="modal-footer">
+                <!-- SCRUM-101 ADDED: unique URL link to existing ReportIssue details page -->
+                <a id="openFullReportLink" class="btn btn-link" href="#" target="_blank"> View Details </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
-
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script src="~/js/latestReportsSearch.js" asp-append-version="true"></script>
-    <script src="~/js/latestReportsSort.js" asp-append-version="true"></script> <!-- SCRUM-86 ADDED: enables newest/oldest sorting -->
+    <script src="~/js/latestReportsSort.js" asp-append-version="true"></script>
+    <script src="~/js/latestReportsModal.js" asp-append-version="true"></script> <!-- Added the JS file for the LatestReportsModal seperately to site.js -->
+    <!-- SCRUM-86 ADDED: enables newest/oldest sorting -->
+    <script src="~/js/latestReportsMap.js" asp-append-version="true"></script> <!-- SCRUM-98 ADDED -->
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=@GoogleMaps.Value.ApiKey">
+    </script>
 }

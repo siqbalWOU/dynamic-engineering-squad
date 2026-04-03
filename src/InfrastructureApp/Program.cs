@@ -5,15 +5,25 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using InfrastructureApp.Services;
 using Microsoft.Extensions.Options;
-using InfrastructureApp.Services.Moderation;
+using InfrastructureApp.Services.ContentModeration;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using InfrastructureApp.Services.ImageHashing;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSession();
+builder.Services.AddDistributedMemoryCache();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults
+        .AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+    });
 
 
 //Leaderboard
@@ -78,9 +88,12 @@ builder.Services.AddScoped<IGeocodingService, GeocodingService>();
 //OpenAI moderation service
 builder.Services.AddHttpClient<IContentModerationService, ContentModerationService>();
 
+//Image Hashing service
+builder.Services.AddScoped<IImageHashService, ImageHashService>();
+
 
 builder.Services.AddScoped<InfrastructureApp.Services.IAvatarService, InfrastructureApp.Services.AvatarService>();
-
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
@@ -101,7 +114,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseSession(); 
 
 app.MapStaticAssets();
 
@@ -112,3 +125,6 @@ app.MapControllerRoute(
 
 
 app.Run();
+
+// exposing the program class so that integration tests can use it
+public partial class Program { }

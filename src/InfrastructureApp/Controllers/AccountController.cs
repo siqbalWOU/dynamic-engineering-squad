@@ -1,9 +1,11 @@
-﻿using InfrastructureApp.ViewModels.Account;
+﻿using System.Security.Claims;
+using InfrastructureApp.ViewModels.Account;
 using InfrastructureApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using InfrastructureApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace InfrastructureApp.Controllers
 {
@@ -11,15 +13,15 @@ namespace InfrastructureApp.Controllers
     {
         private readonly UserManager<Users> _userManager;
         private readonly SignInManager<Users> _signInManager;
-
+        private readonly IUserService _userService;
         private readonly IAvatarService _avatarService;
 
-        public AccountController(UserManager<Users> userManager,  SignInManager<Users> signInManager, IAvatarService avatarService)
+        public AccountController(UserManager<Users> userManager,  SignInManager<Users> signInManager, IAvatarService avatarService, IUserService userService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _avatarService = avatarService;
-            
+            _userService = userService;
         }
 
         public IActionResult Login()
@@ -70,6 +72,7 @@ namespace InfrastructureApp.Controllers
 
             if (result.Succeeded)
             {
+                await _userManager.AddToRoleAsync(user, "User");
                 return RedirectToAction("Index","Home");
             }
 
@@ -78,6 +81,40 @@ namespace InfrastructureApp.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
+            return View(model);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Admin(int page = 1)
+        {
+            var pageSize = 10;
+            var model = await _userService.GetUsersWithRolesAsync(page, pageSize);
+            return View(model);
+        }
+        
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditRoles(string userId)
+        {
+            var model = await _userService.GetManageRolesViewModelAsync(userId);
+            return model == null ? NotFound() : View(model);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditRoles(ManageUserRolesViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            string currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _userService.UpdateUserRolesAsync(model, currentAdminId);
+        
+            if (result.Succeeded) return RedirectToAction("Admin");
+
+            foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
             return View(model);
         }
         
