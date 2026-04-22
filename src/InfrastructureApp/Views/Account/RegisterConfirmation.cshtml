@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Register Confirmation";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="display-4">Success!</h1>
+            <p class="lead">We've sent a verification email to your email..</p>
+            <p>Please check your inbox (and spam folder) and click the link to activate your account.</p>
+            
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success mt-3">
+                    @ViewBag.Message
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Login" class="btn btn-primary">Go to Login</a>
+            </div>
+        </div>
+    </div>
+</div>

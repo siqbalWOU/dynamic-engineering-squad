@@ -1,6 +1,8 @@
 using InfrastructureApp.Models;
 using InfrastructureApp.Services;
 using InfrastructureApp.ViewModels.Account;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using NUnit.Framework;
@@ -14,13 +16,19 @@ namespace InfrastructureApp_Tests.Services
     public class AvatarServiceTests
     {
         private Mock<UserManager<Users>> _mockUserManager = null!;
+        private Mock<IWebHostEnvironment> _mockEnv = null!;          // ← add
         private AvatarService _service = null!;
 
         [SetUp]
         public void SetUp()
         {
             _mockUserManager = MockUserManager();
-            _service = new AvatarService(_mockUserManager.Object);
+
+            _mockEnv = new Mock<IWebHostEnvironment>();              // ← add
+            _mockEnv.Setup(e => e.ContentRootPath)                  // ← add
+                    .Returns(Path.GetTempPath());                    // ← add
+
+            _service = new AvatarService(_mockUserManager.Object, _mockEnv.Object);  // ← add _mockEnv.Object
         }
 
         // -------------------------------
@@ -35,19 +43,34 @@ namespace InfrastructureApp_Tests.Services
         }
 
         // -------------------------------
+        //   Helper: Fake IFormFile
+        // -------------------------------
+        private static IFormFile MakeFakeFile(string contentType, long sizeBytes)
+        {
+            var mock = new Mock<IFormFile>();
+            var content = new byte[sizeBytes];
+            var stream  = new MemoryStream(content);
+
+            mock.Setup(f => f.ContentType).Returns(contentType);
+            mock.Setup(f => f.Length).Returns(sizeBytes);
+            mock.Setup(f => f.FileName).Returns("test.jpg");
+            mock.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            return mock.Object;
+        }
+
+        // -------------------------------
         //   TEST: Building the ViewModel
         // -------------------------------
-      [Test]
-      public void BuildChooseAvatarViewModel_ShouldBuildWithCorrectSelection()
+        [Test]
+        public void BuildChooseAvatarViewModel_ShouldBuildWithCorrectSelection()
         {
-            // Arrange: use a real key
             var firstKey = AvatarCatalog.Keys.First();
             var user = new Users { AvatarKey = firstKey };
 
-            // Act
             var vm = _service.BuildChooseAvatarViewModel(user);
 
-            // Assert
             Assert.That(vm.SelectedAvatarKey, Is.EqualTo(firstKey));
             Assert.That(vm.Options.Any(o => o.Key == firstKey), Is.True);
             Assert.That(vm.Options.Single(o => o.Key == firstKey).IsSelected, Is.True);
@@ -56,13 +79,11 @@ namespace InfrastructureApp_Tests.Services
         [Test]
         public void BuildChooseAvatarViewModel_ShouldOverrideSelection_WhenSelectedKeyProvided()
         {
-            // Arrange: use a real key
             var firstKey = AvatarCatalog.Keys.First();
             var user = new Users { AvatarKey = firstKey };
-            // Act
+
             var vm = _service.BuildChooseAvatarViewModel(user);
 
-            // Assert
             Assert.That(vm.SelectedAvatarKey, Is.EqualTo(firstKey));
             Assert.That(vm.Options.Any(o => o.Key == firstKey), Is.True);
             Assert.That(vm.Options.Single(o => o.Key == firstKey).IsSelected, Is.True);
@@ -71,13 +92,10 @@ namespace InfrastructureApp_Tests.Services
         [Test]
         public void BuildChooseAvatarViewModel_ShouldIncludeErrorMessage()
         {
-            // Arrange
             var user = new Users { AvatarKey = "avatar1" };
 
-            // Act
             var vm = _service.BuildChooseAvatarViewModel(user, error: "Something went wrong");
 
-            // Assert
             Assert.That(vm.ErrorMessage, Is.EqualTo("Something went wrong"));
         }
 
@@ -87,14 +105,10 @@ namespace InfrastructureApp_Tests.Services
         [Test]
         public async Task SaveAvatarAsync_ShouldFail_WhenAvatarKeyIsInvalid()
         {
-            // Arrange
             var user = new Users { AvatarKey = "avatar1" };
-            string invalidKey = null; // AvatarCatalog.IsValid(null) should be false
 
-            // Act
-            var (success, error) = await _service.SaveAvatarAsync(user, invalidKey);
+            var (success, error) = await _service.SaveAvatarAsync(user, null);
 
-            // Assert
             Assert.That(success, Is.False);
             Assert.That(error, Is.EqualTo("Please select an avatar."));
         }
@@ -102,7 +116,6 @@ namespace InfrastructureApp_Tests.Services
         [Test]
         public async Task SaveAvatarAsync_ShouldSave_WhenValidAvatar()
         {
-            // Arrange
             var user = new Users { AvatarKey = "avatar1" };
             var newKey = AvatarCatalog.Keys.First();
 
@@ -110,10 +123,8 @@ namespace InfrastructureApp_Tests.Services
                 .Setup(m => m.UpdateAsync(user))
                 .ReturnsAsync(IdentityResult.Success);
 
-            // Act
             var (success, error) = await _service.SaveAvatarAsync(user, newKey);
 
-            // Assert
             Assert.That(success, Is.True);
             Assert.That(error, Is.Null);
             Assert.That(user.AvatarKey, Is.EqualTo(newKey));
@@ -122,7 +133,6 @@ namespace InfrastructureApp_Tests.Services
         [Test]
         public async Task SaveAvatarAsync_ShouldFail_WhenUserManagerFails()
         {
-            // Arrange
             var user = new Users { AvatarKey = "avatar1" };
             var newKey = AvatarCatalog.Keys.First();
 
@@ -130,12 +140,82 @@ namespace InfrastructureApp_Tests.Services
                 .Setup(m => m.UpdateAsync(user))
                 .ReturnsAsync(IdentityResult.Failed());
 
-            // Act
             var (success, error) = await _service.SaveAvatarAsync(user, newKey);
 
-            // Assert
             Assert.That(success, Is.False);
             Assert.That(error, Is.EqualTo("Could not save your avatar. Please try again."));
+        }
+
+        // -------------------------------
+        //   TEST: SaveUploadedAvatarAsync
+        // -------------------------------
+        [Test]
+        public async Task SaveUploadedAvatarAsync_ShouldFail_WhenFileIsNull()
+        {
+            var user = new Users();
+
+            var (success, error) = await _service.SaveUploadedAvatarAsync(user, null!);
+
+            Assert.That(success, Is.False);
+            Assert.That(error, Is.EqualTo("Please select an image file to upload."));
+        }
+
+        [Test]
+        public async Task SaveUploadedAvatarAsync_ShouldFail_WhenContentTypeIsInvalid()
+        {
+            var user = new Users();
+            var file = MakeFakeFile("image/gif", 1024);
+
+            var (success, error) = await _service.SaveUploadedAvatarAsync(user, file);
+
+            Assert.That(success, Is.False);
+            Assert.That(error, Is.EqualTo("Only JPG and PNG files are accepted."));
+        }
+
+        [Test]
+        public async Task SaveUploadedAvatarAsync_ShouldFail_WhenFileTooLarge()
+        {
+            var user = new Users();
+            var file = MakeFakeFile("image/jpeg", 6 * 1024 * 1024); // 6 MB
+
+            var (success, error) = await _service.SaveUploadedAvatarAsync(user, file);
+
+            Assert.That(success, Is.False);
+            Assert.That(error, Is.EqualTo("File exceeds the 5 MB size limit."));
+        }
+
+        [Test]
+        public async Task SaveUploadedAvatarAsync_ShouldSave_WhenFileIsValid()
+        {
+            var user = new Users();
+            var file = MakeFakeFile("image/png", 1024);
+
+            _mockUserManager
+                .Setup(m => m.UpdateAsync(user))
+                .ReturnsAsync(IdentityResult.Success);
+
+            var (success, error) = await _service.SaveUploadedAvatarAsync(user, file);
+
+            Assert.That(success, Is.True);
+            Assert.That(error, Is.Null);
+            Assert.That(user.AvatarUrl, Does.StartWith("/uploads/avatars/"));
+            Assert.That(user.AvatarKey, Is.Null);
+        }
+
+        [Test]
+        public async Task SaveUploadedAvatarAsync_ShouldFail_WhenUserManagerFails()
+        {
+            var user = new Users();
+            var file = MakeFakeFile("image/jpeg", 1024);
+
+            _mockUserManager
+                .Setup(m => m.UpdateAsync(user))
+                .ReturnsAsync(IdentityResult.Failed());
+
+            var (success, error) = await _service.SaveUploadedAvatarAsync(user, file);
+
+            Assert.That(success, Is.False);
+            Assert.That(error, Is.EqualTo("Could not save your photo. Please try again."));
         }
     }
 }

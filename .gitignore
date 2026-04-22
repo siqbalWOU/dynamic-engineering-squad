@@ -9,6 +9,7 @@ DUMB.txt
 .DS_Store
 .idea
 .vs
+test.db
 
 ## A streamlined .gitignore for modern .NET projects
 ## including temporary files, build results, and

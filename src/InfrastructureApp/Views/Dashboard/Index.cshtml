@@ -13,11 +13,19 @@
                 Personal Information
             </div>
             <div class="card-body">
-                <p><strong>Username:</strong> @Model.Username</p>
-                <p><strong>Email:</strong> @Model.Email</p>
-                <a class="btn btn-outline-primary"
-                    asp-controller="Account"
-                    asp-action="ChooseAvatar">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="@Model.ResolvedAvatarUrl"
+                         alt="Your avatar"
+                         style="width:72px;height:72px;border-radius:50%;object-fit:cover;
+                                border:3px solid #0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.2);" />
+                    <div>
+                        <div class="fw-bold fs-5">@Model.Username</div>
+                        <div class="text-muted small">@Model.Email</div>
+                    </div>
+                </div>
+                <a class="btn btn-outline-primary btn-sm"
+                   asp-controller="Account"
+                   asp-action="ChooseAvatar">
                     Choose / Change Avatar
                 </a>
             </div>

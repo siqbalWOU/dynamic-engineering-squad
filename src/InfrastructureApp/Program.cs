@@ -8,6 +8,8 @@ using Microsoft.Extensions.Options;
 using InfrastructureApp.Services.ContentModeration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using InfrastructureApp.Services.ImageHashing;
+using Azure.Communication.Email;
+using InfrastructureApp.Services.ReportAssist;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,8 +30,19 @@ builder.Services
 
 //Leaderboard
 // Leaderboard (DB-backed)
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    var testDbPath = Environment.GetEnvironmentVariable("TEST_DB_PATH") ?? builder.Configuration.GetConnectionString("DefaultConnection");
+    if (testDbPath != null && !testDbPath.StartsWith("Data Source=")) testDbPath = $"Data Source={testDbPath}";
+    
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite(testDbPath));
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 
 builder.Services.AddIdentity<Users, IdentityRole>(options =>
@@ -39,12 +52,15 @@ builder.Services.AddIdentity<Users, IdentityRole>(options =>
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 6;
     options.User.RequireUniqueEmail = true;
-    options.SignIn.RequireConfirmedAccount = false; // until we set up email api we don't need confirmation
-    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedEmail = true;
     options.SignIn.RequireConfirmedPhoneNumber = false;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.AddScoped<IEmailService, AzureEmailService>();
 
 builder.Services.AddScoped<ILeaderboardRepository, LeaderboardRepositoryEf>();
 builder.Services.AddScoped<LeaderboardService>();
@@ -91,9 +107,29 @@ builder.Services.AddHttpClient<IContentModerationService, ContentModerationServi
 //Image Hashing service
 builder.Services.AddScoped<IImageHashService, ImageHashService>();
 
+//ReportAssist
+builder.Services.AddScoped<IReportDescriptionSuggestionService, ReportDescriptionSuggestionService>();
+
+builder.Services.AddScoped<IAvatarService, AvatarService>();
+
+
+
+//Email
+string? emailConnStr = builder.Configuration.GetConnectionString("CommunicationServicesConnectionString");
+if (!string.IsNullOrWhiteSpace(emailConnStr) && emailConnStr.Contains("endpoint="))
+{
+    var emailClient = new EmailClient(emailConnStr);
+    builder.Services.AddSingleton(emailClient);
+    Console.WriteLine("[STARTUP] Azure EmailClient registered successfully.");
+}
+else
+{
+    Console.WriteLine("[STARTUP] Azure EmailClient NOT registered (missing or invalid connection string).");
+}
 
 builder.Services.AddScoped<InfrastructureApp.Services.IAvatarService, InfrastructureApp.Services.AvatarService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

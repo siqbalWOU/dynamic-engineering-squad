@@ -157,7 +157,7 @@ namespace InfrastructureApp.Services
 
             try
             {
-                report.ImageUrl = savedImagePath;
+                report.ImageUrl = savedImagePath ?? report.CameraImageUrl;
                 report.Status = modResult.Performed ? "Approved" : "Pending";
                 report.CreatedAt = DateTime.UtcNow;
                 report.UserId = userId;

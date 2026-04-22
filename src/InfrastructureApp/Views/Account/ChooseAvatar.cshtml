@@ -8,12 +8,15 @@
         <div class="alert alert-warning">@Model.ErrorMessage</div>
     }
 
-    <form asp-action="ChooseAvatar" method="post">
+   
+    <form asp-action="ChooseAvatar" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
 
         <input type="hidden" asp-for="SelectedAvatarKey" />
+        <input type="hidden" asp-for="UseUploadedImage" id="useUploadedImageFlag" value="false" />
 
-        <div class="row g-3">
+        
+        <div class="row g-3" id="avatarGrid">
             @foreach (var opt in Model.Options)
             {
                 <div class="col-6 col-md-3">
@@ -26,8 +29,39 @@
             }
         </div>
 
-        <div class="mt-4">
-            <button class="btn btn-primary" type="submit">Save Avatar</button>
+        
+        <hr class="my-4" />
+        <h5 class="mb-3">Or upload your own photo</h5>
+
+        <div class="upload-drop-zone" id="dropZone">
+            <div id="dropZoneBody">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#6c757d" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                </svg>
+                <p class="mb-1 mt-2">Drag &amp; drop your photo here</p>
+                <p class="text-muted small">or</p>
+                <label class="btn btn-outline-secondary btn-sm" for="UploadedImage">Browse file</label>
+                <input type="file"
+                       id="UploadedImage"
+                       name="UploadedImage"
+                       accept="image/jpeg,image/png"
+                       class="d-none" />
+                <p class="text-muted small mt-2 mb-0">JPG or PNG · Max 5 MB</p>
+            </div>
+
+            <div class="d-none text-center" id="previewArea">
+                <img id="previewImg" src="#" alt="Your photo preview" class="upload-preview-img rounded" />
+                <br />
+                <button type="button" class="btn btn-link btn-sm text-danger mt-1" id="clearPhoto">
+                    ✕ Remove &amp; choose again
+                </button>
+            </div>
+        </div>
+
+       
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit" id="saveBtn">Save Avatar</button>
             <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Cancel</a>
         </div>
     </form>
@@ -42,26 +76,138 @@
         border-radius: 12px;
         cursor: pointer;
         box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        transition: border-color .15s, box-shadow .15s;
     }
 
     .avatar-tile.selected {
         border-color: #0d6efd;
         box-shadow: 0 0 0 3px rgba(13,110,253,.2);
     }
+
+    .upload-drop-zone {
+        border: 2px dashed #ced4da;
+        border-radius: 12px;
+        padding: 2rem 1rem;
+        text-align: center;
+        background: #f8f9fa;
+        transition: border-color .2s, background .2s;
+    }
+
+    .upload-drop-zone.drag-over {
+        border-color: #0d6efd;
+        background: rgba(13,110,253,.05);
+    }
+
+    .upload-drop-zone.upload-active {
+        border-color: #0d6efd;
+        border-style: solid;
+    }
+
+    .upload-preview-img {
+        max-height: 160px;
+        max-width: 160px;
+        object-fit: cover;
+        border: 3px solid #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13,110,253,.2);
+    }
 </style>
 
 <script>
-    (function () {
-        const hidden = document.querySelector('input[name="SelectedAvatarKey"]');
-        const tiles = document.querySelectorAll('.avatar-tile');
+(function () {
+    // ── Preset tile selection ──
+    const hiddenKey  = document.querySelector('input[name="SelectedAvatarKey"]');
+    const flagInput  = document.getElementById('useUploadedImageFlag');
+    const tiles      = document.querySelectorAll('.avatar-tile');
+    const saveBtn    = document.getElementById('saveBtn');
 
-        tiles.forEach(t => {
-            t.addEventListener('click', () => {
-                hidden.value = t.getAttribute('data-avatar-key');
+    tiles.forEach(t => {
+        t.addEventListener('click', () => {
+            hiddenKey.value  = t.getAttribute('data-avatar-key');
+            flagInput.value  = 'false';   // preset chosen — clear upload flag
 
-                tiles.forEach(x => x.classList.remove('selected'));
-                t.classList.add('selected');
-            });
+            tiles.forEach(x => x.classList.remove('selected'));
+            t.classList.add('selected');
+
+            // deactivate upload zone styling
+            dropZone.classList.remove('upload-active');
+            resetUpload(false); // clear preview but keep form submittable via preset
+            saveBtn.disabled = false;
         });
-    })();
+    });
+
+    // ── Upload / drag-drop ──
+    const dropZone    = document.getElementById('dropZone');
+    const fileInput   = document.getElementById('UploadedImage');
+    const previewArea = document.getElementById('previewArea');
+    const dropBody    = document.getElementById('dropZoneBody');
+    const previewImg  = document.getElementById('previewImg');
+    const clearBtn    = document.getElementById('clearPhoto');
+
+    const MAX_BYTES = 5 * 1024 * 1024;
+    const ALLOWED   = ['image/jpeg', 'image/png'];
+
+    function activateUpload(file) {
+        if (!ALLOWED.includes(file.type)) {
+            alert('Only JPG and PNG files are accepted.');
+            fileInput.value = '';
+            return;
+        }
+        if (file.size > MAX_BYTES) {
+            alert('File exceeds the 5 MB size limit.');
+            fileInput.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            previewImg.src = e.target.result;
+            dropBody.classList.add('d-none');
+            previewArea.classList.remove('d-none');
+            dropZone.classList.add('upload-active');
+
+            // mark upload path and deselect any preset tile
+            flagInput.value = 'true';
+            hiddenKey.value = '';
+            tiles.forEach(x => x.classList.remove('selected'));
+            saveBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function resetUpload(clearFileInput = true) {
+        if (clearFileInput) fileInput.value = '';
+        previewImg.src = '#';
+        previewArea.classList.add('d-none');
+        dropBody.classList.remove('d-none');
+        dropZone.classList.remove('upload-active');
+        if (clearFileInput) flagInput.value = 'false';
+    }
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) activateUpload(fileInput.files[0]);
+    });
+
+    clearBtn.addEventListener('click', () => resetUpload(true));
+
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    ['dragleave', 'dragend'].forEach(ev =>
+        dropZone.addEventListener(ev, () => dropZone.classList.remove('drag-over'))
+    );
+
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            activateUpload(file);
+        }
+    });
+})();
 </script>

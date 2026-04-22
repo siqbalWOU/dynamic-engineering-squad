@@ -1,6 +1,7 @@
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
 using InfrastructureApp.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfrastructureApp.Services
@@ -9,31 +10,34 @@ namespace InfrastructureApp.Services
     {
         
         private readonly ApplicationDbContext _db; // Database context used for queries
+        private readonly UserManager<Users> _userManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public DashboardRepositoryEf(ApplicationDbContext db)
+        public DashboardRepositoryEf(ApplicationDbContext db, UserManager<Users> userManager, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
+            _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
         }
 
 
         // Attempt to load a seeded/demo user from the database.
         // If none exists, return placeholder values so the dashboard
         // remains functional until full account integration is enabled.
-        public async Task<DashboardViewModel> GetDashboardSummaryAsync() // Builds the dashboard summary for the current user
+       public async Task<DashboardViewModel> GetDashboardSummaryAsync()
         {
-            
-            var user = await _db.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
+            var currentUser = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext!.User);
 
-            // If no user exists, return default placeholder values
-            if (user == null)
-            {
+            if (currentUser == null)
                 return BuildPlaceholderDashboard();
-            }
 
-            // Otherwise build dashboard using real data
-            return await BuildDashboardForUserAsync(user);
+            // Reload fresh from DB to ensure AvatarKey/AvatarUrl are populated
+            var freshUser = await _userManager.FindByIdAsync(currentUser.Id);
+
+            if (freshUser == null)
+                return BuildPlaceholderDashboard();
+
+            return await BuildDashboardForUserAsync(freshUser);
         }
 
         // Returns default dashboard values when no user is found
@@ -66,7 +70,9 @@ namespace InfrastructureApp.Services
                 Username = user.UserName ?? "DemoUser",
                 Email = user.Email ?? "demo@example.com",
                 ReportsSubmitted = reportsSubmitted,
-                Points = pointsRow?.CurrentPoints ?? 0
+                Points = pointsRow?.CurrentPoints ?? 0,
+                AvatarKey = user.AvatarKey,
+                AvatarUrl = user.AvatarUrl
             };
         }
     }

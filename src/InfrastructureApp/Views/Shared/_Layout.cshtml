@@ -53,13 +53,18 @@
                 <a class="navbar-brand" href="#">
                     <i class="fa-solid fa-city"></i> PatchNotes
                 </a>
-               @{
-                    string avatarUrl = AvatarCatalog.ToUrl(null);
+                
+                @{
+                    string avatarUrl = AvatarCatalog.ToUrl(null); // default fallback
 
                     if (User?.Identity?.IsAuthenticated == true)
                     {
                         var currentUser = await UserManager.GetUserAsync(User);
-                        avatarUrl = AvatarCatalog.ToUrl(currentUser?.AvatarKey);
+
+                        if (!string.IsNullOrWhiteSpace(currentUser?.AvatarUrl))
+                            avatarUrl = currentUser.AvatarUrl;          // uploaded photo wins
+                        else
+                            avatarUrl = AvatarCatalog.ToUrl(currentUser?.AvatarKey); // preset fallback
                     }
                 }
                 @if (User.Identity.IsAuthenticated)
@@ -92,9 +97,9 @@
                                     <i class="fa fa-car"></i> Report Issue
                                 </a>
                             </li>
-                            <li class="nav-item">
+                         @* <li class="nav-item">
                                 <a class="nav-link" href="/Achievements"><i class="fa-solid fa-medal"></i> Badges</a>
-                            </li>
+                            </li> *@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="RoadCamera" asp-action="Index"><i class="fa-solid fa-video"></i> Road Cameras </a>
                             </li>

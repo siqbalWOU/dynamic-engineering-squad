@@ -35,15 +35,24 @@
         <!--text box-->
         <div class="mb-3">
             <label asp-for="Description" class="form-label"></label>
-            <textarea asp-for="Description"
-                      id="Description"
-                      class="form-control"
-                      maxlength="300"
-                      rows="4"
-                      placeholder="Describe the infrastructure issue here. Add a clear description and the location. (300 charactes max)"
-                      aria-label="Issue description"></textarea>
+
+            <div class="position-relative">
+                <textarea asp-for="Description"
+                        id="Description"
+                        class="form-control"
+                        maxlength="300"
+                        rows="5"
+                        spellcheck="true"
+                        placeholder="Describe the infrastructure issue here. Add a clear description and the location. (300 characters max)"
+                        aria-label="Issue description"></textarea>
+
+                <div id="descriptionSuggestions" class="autocomplete-dropdown d-none"></div>
+            </div>
+
             <span asp-validation-for="Description" class="text-danger"></span>
+
             <div class="form-text">
+                <span>Character Count: </span>
                 <span id="descCount">0</span>/300
             </div>
         </div>
@@ -87,13 +96,24 @@
 
 
 
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/reportIssue.js"></script>
+    <script src="~/js/reportAssist.js"></script>
 
     <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=@GoogleMaps.Value.ApiKey&callback=initMap">
     </script>
+
+     @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+    {
+        <script>
+            // Pre-fill coordinates from camera so user doesn't have to click the map
+            window.presetLat = @Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            window.presetLng = @Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        </script>
+    }
 }
 
 

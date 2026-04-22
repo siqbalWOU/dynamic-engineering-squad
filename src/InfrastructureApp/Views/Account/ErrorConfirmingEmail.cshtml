@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Error Confirming Email";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center text-danger">
+            <h1 class="display-4">Confirmation Failed</h1>
+            <p class="lead">Something went wrong while confirming your email.</p>
+            <p>The link may be expired or invalid. Please try logging in to resend the verification email.</p>
+            
+            <div class="mt-4">
+                <a asp-action="Login" class="btn btn-primary">Back to Login</a>
+            </div>
+        </div>
+    </div>
+</div>

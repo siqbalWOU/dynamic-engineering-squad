@@ -16,6 +16,11 @@ jobs:
         with:
           dotnet-version: '9.x'
 
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+          
       - name: Restore dependencies
         run: dotnet restore src/InfrastructureApp_Tests
 
