@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using InfrastructureApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace InfrastructureApp.Controllers
 {
@@ -197,6 +198,148 @@ namespace InfrastructureApp.Controllers
 
             foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
             return View(model);
+        }
+        
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+            {
+                // Don't reveal that the user does not exist or is not confirmed
+                TempData["ForgotPasswordMessage"] = "If your email is in our system, you will receive a reset link shortly.";
+                return View();
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = Url.Action("ResetPassword", "Account", new { token, email = model.Email }, Request.Scheme);
+            
+            await _emailService.SendEmailAsync(model.Email, "Reset Password",
+                $"Please reset your password by <a href='{callbackUrl}'>clicking here</a>.");
+
+            TempData["ForgotPasswordMessage"] = "If your email is in our system, you will receive a reset link shortly.";
+            return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string? token = null, string? email = null)
+        {
+            if (token == null || email == null)
+            {
+                return BadRequest("A token and email must be supplied for password reset.");
+            }
+            var model = new ResetPasswordViewModel { Token = token, Email = email };
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return BadRequest("Invalid or expired token.");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+            if (result.Succeeded)
+            {
+                TempData["ResetPasswordMessage"] = "Your password has been reset successfully.";
+                return View();
+            }
+
+            if (result.Errors.Any(e => e.Code == "InvalidToken"))
+            {
+                return BadRequest("Invalid or expired token.");
+            }
+
+            foreach (var errorItem in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, errorItem.Description);
+            }
+            TempData["ResetPasswordErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult DeleteAccount()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAccount(DeleteAccountViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            string currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _userService.DeleteAccountAsync(currentUserId, model.CurrentPassword);
+
+            if (result.Succeeded)
+            {
+                await _signInManager.SignOutAsync();
+                return RedirectToAction("Index", "Home");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            string currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _userService.DeleteUserAsync(userId, currentAdminId);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "User deleted successfully.";
+                return RedirectToAction("Admin");
+            }
+
+            TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            return RedirectToAction("Admin");
         }
         
         [HttpPost]

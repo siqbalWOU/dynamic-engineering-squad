@@ -15,7 +15,9 @@ public class LeaderboardRepositoryEf : ILeaderboardRepository
 
     public async Task<IReadOnlyCollection<LeaderboardEntry>> GetAllAsync()
     {
-        var results = await _db.Users
+        // Project to an anonymous type first so we can call AvatarCatalog.ToUrl()
+        // outside the EF query (it's C# code, not translatable to SQL).
+        var raw = await _db.Users
             .Where(u => u.UserName != null)
             .GroupJoin(
                 _db.UserPoints,
@@ -23,13 +25,25 @@ public class LeaderboardRepositoryEf : ILeaderboardRepository
                 p => p.UserId,
                 (u, pts) => new { u, pts }
             )
-            .Select(x => new LeaderboardEntry
+            .Select(x => new
             {
-                UserId = x.u.UserName!,
+                UserName   = x.u.UserName!,
+                AvatarKey  = x.u.AvatarKey,
+                AvatarUrl  = x.u.AvatarUrl,
                 UserPoints = x.pts.Select(p => p.CurrentPoints).FirstOrDefault(),
-                UpdatedAtUtc = x.pts.Select(p => p.LastUpdated).FirstOrDefault()
+                UpdatedAt  = x.pts.Select(p => p.LastUpdated).FirstOrDefault()
             })
             .ToListAsync();
+
+        var results = raw.Select(x => new LeaderboardEntry
+        {
+            UserId       = x.UserName,
+            UserPoints   = x.UserPoints,
+            UpdatedAtUtc = x.UpdatedAt,
+            AvatarUrl    = !string.IsNullOrWhiteSpace(x.AvatarUrl)
+                               ? x.AvatarUrl
+                               : AvatarCatalog.ToUrl(x.AvatarKey)
+        }).ToList();
 
         return results.AsReadOnly();
     }

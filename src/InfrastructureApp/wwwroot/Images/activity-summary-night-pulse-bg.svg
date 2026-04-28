@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="none">
+  <defs>
+    <radialGradient id="pulse" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#66c6ff" stop-opacity="0.36"/>
+      <stop offset="55%" stop-color="#1b7fd4" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#090d15" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="600" fill="#0a0e18"/>
+  <circle cx="620" cy="250" r="250" fill="url(#pulse)"/>
+  <circle cx="940" cy="120" r="90" fill="#ffd600" opacity="0.12"/>
+  <g stroke="#7dd3ff" stroke-opacity="0.26" fill="none">
+    <circle cx="620" cy="250" r="85" stroke-width="8"/>
+    <circle cx="620" cy="250" r="145" stroke-width="6"/>
+    <circle cx="620" cy="250" r="220" stroke-width="5"/>
+  </g>
+  <path d="M0 500 C220 420 460 580 760 500 S1020 420 1200 470 L1200 600 L0 600 Z" fill="#05070c" opacity="0.76"/>
+</svg>

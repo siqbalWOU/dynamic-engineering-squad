@@ -5,80 +5,71 @@
     The controller is responsible for populating this model before passing it to the view.-->
 
 
-<h1>Leaderboard</h1>
-
-<!--displays contextual info about how many entries  are currently being shown-->
-<p>Top @Model.TopN</p>
+<div class="d-flex align-items-center gap-3 mb-1">
+    <h1 class="mb-0"><i class="fa-solid fa-trophy me-2 text-safety-yellow"></i>Leaderboard</h1>
+</div>
+<p class="text-muted mb-4">Top <strong class="text-safety-orange">@Model.TopN</strong> contributors</p>
 
 @if (Model.Entries.Count == 0)
 {
-    <p><em>No contributions yet.</em></p>
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info me-2"></i><em>No contributions yet.</em>
+    </div>
 }
 else
 {
-       <!--
-        Bootstrap-styled table used for consistent layout and readability.
-        table-striped improves row distinction for scanning rankings.
-    -->
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                  <!--
-                    Column headers define the leaderboard schema:
-                    Rank → position in the sorted list
-                    User → display identifier
-                    Points → score used for ranking
-                    Updated → last time the score changed
-                -->
-                <th>Rank</th>
-                <th>User</th>
-                <th>Points</th>
-                <th>Updated</th>
-            </tr>
-        </thead>
-        <tbody>
-              @*
-                Use a for-loop instead of foreach so we can:
-                - Easily calculate rank (index + 1)
-                - Guarantee stable ordering matching the service output
-            *@
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table mb-0" style="--bs-table-bg: var(--dark-surface); --bs-table-striped-bg: var(--dark-surface); --bs-table-hover-bg: rgba(255,102,0,0.1);">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--safety-orange); background-color: var(--dark-surface);">
+                        <th style="color: var(--safety-yellow);">Rank</th>
+                        <th style="color: var(--safety-yellow);">Avatar</th>
+                        <th style="color: var(--safety-yellow);">User</th>
+                        <th style="color: var(--safety-yellow);">Points</th>
+                        <th style="color: var(--safety-yellow);">Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
 @{
-    int rank = 1;   // human-friendly ranking counter
+    int rank = 1;
 }
-
 @foreach (var entry in Model.Entries)
 {
-    <tr>
-        <!--
-            Rank is manually incremented because foreach
-            does not provide an index like a for loop.
-        -->
-        <td>@rank</td>
-
-        <!--
-            Display name or identifier for the user.
-            This value is already sanitized and validated
-            by the service layer.
-        -->
-        <td>@entry.UserId</td>
-
-        <!--
-            UserPoints represents the score used to order
-            the leaderboard.
-        -->
-        <td>@entry.UserPoints</td>
-
-        <!--
-            Convert UTC time stored in the database to the
-            user's local time for readability.
-        -->
-        <td>@entry.UpdatedAtUtc.ToLocalTime().ToString("g")</td>
+    <tr style="background-color: var(--dark-surface); color: var(--text-primary); border-color: var(--dark-border); cursor: pointer;"
+        onclick="window.location='/Dashboard?username=@entry.UserId'">
+        <td style="vertical-align: middle;">
+            @if (rank == 1)
+            {
+                <span class="badge" style="background-color: #FFD600; color: #1a1a1a; font-size: 0.85rem;">🥇 1</span>
+            }
+            else if (rank == 2)
+            {
+                <span class="badge" style="background-color: #A8A8A8; color: #1a1a1a; font-size: 0.85rem;">🥈 2</span>
+            }
+            else if (rank == 3)
+            {
+                <span class="badge" style="background-color: #FF6600; color: #fff; font-size: 0.85rem;">🥉 3</span>
+            }
+            else
+            {
+                <span class="text-muted">@rank</span>
+            }
+        </td>
+        <td style="vertical-align: middle;">
+            <img src="@entry.AvatarUrl" alt="avatar"
+                 style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--dark-border);" />
+        </td>
+        <td class="fw-semibold text-muted" style="vertical-align: middle;">@entry.UserId</td>
+        <td style="vertical-align: middle;"><span class="text-safety-blue fw-bold">@entry.UserPoints</span></td>
+        <td class="text-muted small" style="vertical-align: middle;">@entry.UpdatedAtUtc.ToLocalTime().ToString("g")</td>
     </tr>
 
-    rank++;   // move to next leaderboard position
+    rank++;
 }
-
-        </tbody>
-    </table>
+                </tbody>
+            </table>
+        </div>
+    </div>
 }

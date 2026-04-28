@@ -1,10 +1,21 @@
 /* Contains the core business logic for submitting a report + saving an image + awarding points. */
 
+/**The logic for image moderation should be:
+save image first
+build image URL
+set SeverityStatus = Pending
+call moderation
+if moderation passes, call severity estimator
+if severity succeeds, overwrite Pending
+if anything fails, leave as Pending
+save report anyway **/
+
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
 using Microsoft.EntityFrameworkCore;
 using InfrastructureApp.Services.ContentModeration;
 using InfrastructureApp.Services.ImageHashing;
+using InfrastructureApp.Services.ImageSeverity;
 
 namespace InfrastructureApp.Services
 {
@@ -16,18 +27,38 @@ namespace InfrastructureApp.Services
         private readonly IContentModerationService _moderation; //for openAI moderation of user description
         private readonly IImageHashService _imageHashService; // computes SHA-256 + pHash for duplicate image detection
 
-        public ReportIssueService(ApplicationDbContext db, IReportIssueRepository reports, IWebHostEnvironment env, IContentModerationService moderation, IImageHashService imageHashService)
+        private readonly IImageModerationService _imageModerationService; //image severity moderation
+        private readonly IImageSeverityEstimationService _imageSeverityEstimationService; //image severity estimation
+        private readonly IHttpContextAccessor _httpContextAccessor; //image severity
+
+        public ReportIssueService(ApplicationDbContext db, IReportIssueRepository reports, IWebHostEnvironment env, IContentModerationService moderation, 
+                                    IImageHashService imageHashService, IImageModerationService imageModerationService, IImageSeverityEstimationService imageSeverityEstimationService,
+                                    IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
             _reports = reports;
             _env = env;
             _moderation = moderation;
             _imageHashService = imageHashService;
+            _imageModerationService = imageModerationService;
+            _imageSeverityEstimationService = imageSeverityEstimationService;
+            _httpContextAccessor = httpContextAccessor;
+
         }
 
-        //service gets delegated to the repo
         public Task<ReportIssue?> GetByIdAsync(int id)
             => _reports.GetByIdAsync(id);
+
+        public async Task<bool> UpdateStatusAsync(int id, string newStatus)
+        {
+            var report = await _db.ReportIssue.FindAsync(id);
+            if (report == null) return false;
+
+            report.Status = newStatus;
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
 
         //submit report workflow
         //create a report, moderate it, validate image, hash image, reject duplicates, save image, award points
@@ -67,6 +98,10 @@ namespace InfrastructureApp.Services
             // ---------------------------------------------------------
 
             string? savedImagePath = null;
+
+            // Default severity for all reports unless AI successfully classifies it.
+            report.SeverityStatus = ImageSeverityStatuses.Pending;
+            report.SeverityReason = null;
 
             if (report.Photo != null && report.Photo.Length > 0)
             {
@@ -147,9 +182,60 @@ namespace InfrastructureApp.Services
 
                 savedImagePath = $"/uploads/issues/{fileName}";
 
-                // Save the hashes onto the report row so we can compare future uploads.
+                // Save hashes for future duplicate detection.
                 report.ImageSha256 = hashes.Sha256;
                 report.ImagePHash = hashes.PHash;
+
+                // -----------------------------------------------------
+                // 3) Image severity estimation using base64 data URL (AI)
+                // -----------------------------------------------------
+
+                // Build base64 data URL for OpenAI
+                 var imageDataUrl = BuildImageDataUrl(fullPath);
+
+                Console.WriteLine($"[Severity] savedImagePath = {savedImagePath}");
+                Console.WriteLine($"[Severity] imageDataUrl is null? {imageDataUrl == null}");
+
+                if (!string.IsNullOrWhiteSpace(imageDataUrl))
+                {
+                    var imageModerationResult = await _imageModerationService.ModerateImageAsync(imageDataUrl);
+
+                    Console.WriteLine(
+                        $"[Severity] ImageModeration: Performed={imageModerationResult.Performed}, " +
+                        $"IsViable={imageModerationResult.IsViable}, " +
+                        $"Reason={imageModerationResult.Reason ?? "(none)"}");
+
+                    if (imageModerationResult.Performed && !imageModerationResult.IsViable)
+                    {
+                        throw new ContentModerationRejectedException(
+                            "The uploaded image contains inappropriate content and cannot be submitted.",
+                            imageModerationResult.Reason
+                        );
+                    }
+
+                    if (imageModerationResult.Performed && imageModerationResult.IsViable)
+                    {
+                        var severityResult = await _imageSeverityEstimationService
+                            .EstimateSeverityAsync(imageDataUrl);
+
+                        Console.WriteLine(
+                            $"[Severity] SeverityEstimate: Performed={severityResult.Performed}, " +
+                            $"Severity={severityResult.SeverityStatus}, " +
+                            $"Reason={severityResult.Reason ?? "(none)"}");
+
+
+                        if (severityResult.Performed)
+                        {
+                            report.SeverityStatus = severityResult.SeverityStatus;
+                            report.SeverityReason = severityResult.Reason;
+                        }
+                    }
+                }
+
+                else
+                {
+                    Console.WriteLine("[Severity] Skipped because imageDataUrl was null or empty.");
+                }
             }
 
             //starts database transaction, saves it if everything completes otherwise gives an error
@@ -200,6 +286,30 @@ namespace InfrastructureApp.Services
                 await tx.RollbackAsync();
                 throw;
             }
+        }
+
+        //helper function to build imagedataurl
+        private static string? BuildImageDataUrl(string fullPath)
+        {
+            if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
+                return null;
+
+            var ext = Path.GetExtension(fullPath).ToLowerInvariant();
+            var mimeType = ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                _ => null
+            };
+
+            if (mimeType == null)
+                return null;
+
+            var bytes = File.ReadAllBytes(fullPath);
+            var base64 = Convert.ToBase64String(bytes);
+
+            return $"data:{mimeType};base64,{base64}";
         }
     }
 }

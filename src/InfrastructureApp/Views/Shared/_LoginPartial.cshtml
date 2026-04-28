@@ -3,6 +3,11 @@
 
 <ul class="navbar-nav d-flex align-items-center text-light gap-3">
     <li class="nav-item d-flex align-items-center">
+        <!-- SCRUM-134 ADDED:
+             Make the Google Translate control read as translation instead of authentication -->
+        <span class="text-light me-2">
+            <i class="fa-solid fa-globe"></i> Google Translate
+        </span>
         <div id="google_translate_element"></div>
     </li>
     @if (User.Identity.IsAuthenticated)

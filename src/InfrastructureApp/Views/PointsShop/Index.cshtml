@@ -1,0 +1,112 @@
+@model InfrastructureApp.ViewModels.PointsShopIndexViewModel
+
+@{
+    ViewData["Title"] = "Points Shop";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4"
+     data-testid="points-shop-page">
+    <div>
+        <h1 class="mb-1"><i class="fa-solid fa-store me-2 text-safety-yellow"></i>Points Shop</h1>
+        <p class="text-muted mb-0">Spend your earned points on dashboard backgrounds and borders.</p>
+    </div>
+    <div class="card border-0 shadow-sm" style="min-width: 220px;">
+        <div class="card-body">
+            <div class="text-muted text-uppercase small">Current Balance</div>
+            <div class="fs-3 fw-bold text-safety-orange" data-testid="points-shop-current-balance">@Model.CurrentPoints</div>
+            <div class="small text-muted">available points</div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert alert-success" data-testid="points-shop-success">
+        <i class="fa-solid fa-circle-check me-2"></i>@successMessage
+    </div>
+}
+
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert alert-danger" data-testid="points-shop-error">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@errorMessage
+    </div>
+}
+
+@if (Model.Items.Count == 0)
+{
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info me-2"></i>No shop items are available right now.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var item in Model.Items)
+        {
+            <div class="col-md-6 col-xl-3">
+                <div class="card h-100 shadow-sm"
+                     data-testid="points-shop-item"
+                     data-shop-item-name="@item.Name">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                            <span class="badge text-bg-secondary">@item.CategoryLabel</span>
+                            <span class="badge text-bg-warning" data-testid="points-shop-item-cost">@item.CostPoints pts</span>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(item.PreviewImageUrl))
+                        {
+                            <div class="points-shop-preview points-shop-preview--background mb-3"
+                                 style="background-image: linear-gradient(rgba(18, 18, 18, 0.18), rgba(18, 18, 18, 0.4)), url('@item.PreviewImageUrl');">
+                            </div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(item.PreviewCssClass))
+                        {
+                            <div class="points-shop-preview points-shop-preview--border @item.PreviewCssClass mb-3"></div>
+                        }
+
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <h5 class="card-title mb-0" data-testid="points-shop-item-name">@item.Name</h5>
+                        </div>
+
+                        <p class="card-text text-muted flex-grow-1" data-testid="points-shop-item-description">@item.Description</p>
+
+                        @if (item.IsOwned)
+                        {
+                            <div class="alert alert-success py-2 mb-3" data-testid="points-shop-item-status">
+                                <i class="fa-solid fa-check me-2"></i>Owned
+                            </div>
+                        }
+                        else if (!item.CanPurchase)
+                        {
+                            <div class="alert alert-secondary py-2 mb-3" data-testid="points-shop-item-status">
+                                <i class="fa-solid fa-lock me-2"></i>Not enough points
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info py-2 mb-3" data-testid="points-shop-item-status">
+                                <i class="fa-solid fa-bag-shopping me-2"></i>Ready to purchase
+                            </div>
+                        }
+
+                        <form asp-action="Purchase"
+                              asp-controller="PointsShop"
+                              method="post"
+                              class="mt-auto"
+                              data-testid="points-shop-purchase-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit"
+                                    class="btn btn-primary w-100"
+                                    data-testid="points-shop-purchase-button"
+                                    disabled="@(!item.CanPurchase)">
+                                @(item.IsOwned ? "Owned" : "Purchase")
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

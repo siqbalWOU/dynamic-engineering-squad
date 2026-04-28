@@ -25,6 +25,9 @@
       <None Update="Data/Moderation/badWords.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Data/Moderation/descriptionSuggestions.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     

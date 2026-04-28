@@ -10,4 +10,6 @@ public interface IUserService
         GetUsersWithRolesAsync(int page, int pageSize);
     Task<ManageUserRolesViewModel> GetManageRolesViewModelAsync(string userId);
     Task<IdentityResult> UpdateUserRolesAsync(ManageUserRolesViewModel model, string adminId);
+    Task<IdentityResult> DeleteUserAsync(string userId, string adminId);
+    Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword);
 }

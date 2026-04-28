@@ -1,4 +1,20 @@
 /* =========================
+   Dark Theme Color Palette
+   ========================= */
+:root {
+  --dark-bg:          #2B2B2B;   /* charcoal page background */
+  --dark-surface:     #363636;   /* card / panel surface */
+  --dark-border:      #484848;   /* subtle borders */
+  --text-primary:     #E8E8E8;   /* main body text (soft off-white) */
+  --text-muted:       #A0A0A0;   /* secondary / muted text */
+
+  /* Safety-object highlights */
+  --safety-orange:    #FF6600;   /* traffic cone / safety vest */
+  --safety-yellow:    #FFD600;   /* caution tape */
+  --safety-blue:      #1B7FD4;   /* hard-hat / safety equipment */
+}
+
+/* =========================
    Existing base site styles
    ========================= */
 html {
@@ -12,7 +28,7 @@ html {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.1rem var(--dark-surface), 0 0 0 0.25rem var(--safety-blue);
 }
 
 html {
@@ -22,8 +38,300 @@ html {
 
 body {
   margin-bottom: 60px;
-   top: 0px !important; /* Added to prevents Google Translate banner from shifting page down */
+  top: 0px !important; /* Added to prevents Google Translate banner from shifting page down */
+  background-color: var(--dark-bg);
+  color: var(--text-primary);
 }
+
+/* =========================
+   Global Bootstrap overrides
+   ========================= */
+
+/* Cards — lifted off the charcoal page */
+.card {
+  background-color: var(--dark-surface);
+  border-color: var(--dark-border);
+  color: var(--text-primary);
+  /* Two-layer shadow: deep black base + faint orange warmth so it reads on dark bg */
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 1px 4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 102, 0, 0.08);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Clickable cards — visible resting glow, stronger on hover */
+.card[role="button"],
+a .card,
+.card.clickable {
+  cursor: pointer;
+  /* Subtle orange glow at rest so the card reads as interactive */
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 1px 4px rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(255, 102, 0, 0.18),
+    0 0 0 1px rgba(255, 102, 0, 0.25);
+  border-color: rgba(255, 102, 0, 0.3);
+}
+
+.card[role="button"]:hover,
+a:hover .card,
+.card.clickable:hover {
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.7),
+    0 0 22px rgba(255, 102, 0, 0.45),
+    0 0 0 1px rgba(255, 102, 0, 0.6);
+  border-color: var(--safety-orange);
+  transform: translateY(-4px);
+}
+
+.card-header {
+  background-color: var(--dark-border);
+  border-color: var(--dark-border);
+  color: var(--text-primary);
+}
+
+/* Tables */
+.table {
+  color: var(--text-primary);
+  border-color: var(--dark-border);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: var(--dark-surface);
+  color: var(--text-primary);
+}
+
+/* All table body rows are hoverable — orange highlight */
+.table tbody tr {
+  transition: background-color 0.15s ease, color 0.15s ease;
+  cursor: default;
+}
+
+.table tbody tr:hover > * {
+  background-color: rgba(255, 102, 0, 0.12);
+  color: var(--safety-orange);
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: rgba(255, 102, 0, 0.12);
+  color: var(--safety-orange);
+}
+
+/* Form controls */
+.form-control, .form-select {
+  background-color: var(--dark-surface);
+  border-color: var(--dark-border);
+  color: var(--text-primary);
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: var(--dark-surface);
+  border-color: var(--safety-blue);
+  color: var(--text-primary);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+/* Badges */
+.badge.bg-primary   { background-color: var(--safety-blue)   !important; }
+.badge.bg-warning   { background-color: var(--safety-yellow) !important; color: #1a1a1a !important; }
+.badge.bg-danger    { background-color: var(--safety-orange) !important; }
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--safety-blue);
+  border-color: var(--safety-blue);
+}
+.btn-primary:hover {
+  background-color: #1568b3;
+  border-color: #1568b3;
+}
+
+.btn-warning {
+  background-color: var(--safety-yellow);
+  border-color: var(--safety-yellow);
+  color: #1a1a1a;
+}
+.btn-warning:hover {
+  background-color: #e6c100;
+  border-color: #e6c100;
+  color: #1a1a1a;
+}
+
+.btn-danger, .btn-orange {
+  background-color: var(--safety-orange);
+  border-color: var(--safety-orange);
+  color: #fff;
+}
+.btn-danger:hover, .btn-orange:hover {
+  background-color: #e05a00;
+  border-color: #e05a00;
+}
+
+/* Alerts — all variants darkened */
+.alert {
+  background-color: var(--dark-surface);
+  border-color: var(--dark-border);
+  color: var(--text-primary);
+}
+
+.alert-info {
+  background-color: rgba(27, 127, 212, 0.15);
+  border-color: var(--safety-blue);
+  color: var(--text-primary);
+}
+
+.alert-warning {
+  background-color: rgba(255, 214, 0, 0.12);
+  border-color: var(--safety-yellow);
+  color: var(--text-primary);
+}
+
+.alert-danger {
+  background-color: rgba(255, 102, 0, 0.15);
+  border-color: var(--safety-orange);
+  color: var(--text-primary);
+}
+
+.alert-success {
+  background-color: rgba(27, 127, 212, 0.15);
+  border-color: var(--safety-blue);
+  color: var(--text-primary);
+}
+
+/* Modals */
+.modal-content {
+  background-color: var(--dark-surface);
+  color: var(--text-primary);
+  border-color: var(--dark-border);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+}
+
+.modal-header, .modal-footer {
+  border-color: var(--dark-border);
+}
+
+/* Modal header accent strip */
+.modal-header {
+  border-top: 3px solid var(--safety-orange);
+}
+
+/* Close button — invert so it's visible on dark backgrounds */
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(1.5);
+}
+
+/* Modal image border */
+.modal-body img.img-fluid {
+  border-color: var(--dark-border) !important;
+}
+
+/* Modal map container */
+#modalReportMap {
+  border-color: var(--dark-border) !important;
+  border-radius: 6px;
+}
+
+/* Outline buttons — orange on hover */
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover,
+.btn-outline-info:hover,
+.btn-outline-light:hover {
+  background-color: var(--safety-orange) !important;
+  border-color: var(--safety-orange) !important;
+  color: #fff !important;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+  background-color: var(--dark-surface);
+  border-color: var(--dark-border);
+}
+
+.dropdown-item {
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(255, 102, 0, 0.15);
+  color: var(--safety-orange);
+}
+
+/* Links */
+a:not(.btn):not(.nav-link):not(.navbar-brand):not(.dropdown-item) {
+  color: var(--safety-blue);
+}
+
+a:not(.btn):not(.nav-link):not(.navbar-brand):not(.dropdown-item):hover {
+  color: var(--safety-orange);
+}
+
+/* Muted text */
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Borders */
+.border, .border-top, .border-bottom, .border-secondary {
+  border-color: var(--dark-border) !important;
+}
+
+/* Input groups */
+.input-group-text {
+  background-color: var(--dark-border);
+  border-color: var(--dark-border);
+  color: var(--text-primary);
+}
+
+/* List groups */
+.list-group-item {
+  background-color: var(--dark-surface);
+  border-color: var(--dark-border);
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, border-left-color 0.15s ease, color 0.15s ease;
+}
+
+/* Clickable list items (Latest Reports, Home recent activity) */
+.list-group-item-action:hover,
+.home-report-item:hover {
+  background-color: rgba(255, 102, 0, 0.12);
+  border-left: 3px solid var(--safety-orange);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.list-group-item-action:hover .fw-bold,
+.home-report-item:hover h6,
+.home-report-item:hover .home-report-link-text {
+  color: var(--safety-orange);
+}
+
+/* SCRUM-128 ADDED: Inline details area for expanded Home page recent reports */
+.home-report-details {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.home-report-details p {
+  overflow-wrap: anywhere;
+}
+
+/* Page headings accent */
+h1, h2, h3 {
+  color: var(--text-primary);
+}
+
+/* Safety-color utility classes */
+.text-safety-orange { color: var(--safety-orange) !important; }
+.text-safety-yellow { color: var(--safety-yellow) !important; }
+.text-safety-blue   { color: var(--safety-blue)   !important; }
+.bg-safety-orange   { background-color: var(--safety-orange) !important; }
+.bg-safety-yellow   { background-color: var(--safety-yellow) !important; color: #1a1a1a !important; }
+.bg-safety-blue     { background-color: var(--safety-blue)   !important; }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
@@ -86,43 +394,397 @@ body {
    Report Issue styling
    ========================= */
 
-/* Base action button */
+/* Info / instructions card on the landing page */
+.report-card {
+    background-color: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    border-left: 4px solid var(--safety-orange);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55), 0 0 8px rgba(255, 102, 0, 0.1);
+    color: var(--text-primary);
+}
+
+.report-card h2 {
+    color: var(--safety-orange);
+}
+
+.report-text-wrap {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+.dashboard-personal-card {
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.dashboard-activity-card {
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.dashboard-personal-card--unlocked .card-header,
+.dashboard-personal-card--unlocked .card-body,
+.dashboard-activity-card.dashboard-personal-card--unlocked .card-header,
+.dashboard-activity-card.dashboard-personal-card--unlocked .card-body {
+  background-color: transparent;
+}
+
+.dashboard-personal-card--unlocked .card-header {
+  border-bottom-color: rgba(255, 214, 0, 0.4);
+  backdrop-filter: blur(1px);
+}
+
+.dashboard-personal-card--unlocked .btn-outline-primary {
+  background-color: rgba(33, 37, 41, 0.35);
+  border-color: rgba(255, 214, 0, 0.4);
+  color: var(--text-primary);
+}
+
+.dashboard-personal-card--unlocked .btn-outline-primary:hover {
+  background-color: var(--safety-orange) !important;
+  border-color: var(--safety-orange) !important;
+  color: #fff !important;
+}
+
+.dashboard-background-form .form-select {
+  min-width: 240px;
+  max-width: 360px;
+}
+
+.dashboard-background-previews {
+  background: rgba(16, 17, 18, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.dashboard-appearance-panel {
+  background: rgba(16, 17, 18, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.9rem;
+}
+
+.dashboard-background-preview {
+  width: 72px;
+  height: 44px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-background-preview--active {
+  border-color: var(--safety-yellow);
+  box-shadow: 0 0 0 2px rgba(255, 214, 0, 0.18), 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+.dashboard-border-preview {
+  width: 72px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(34, 35, 39, 0.95), rgba(62, 64, 70, 0.8));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-border-preview--active {
+  box-shadow: 0 0 0 2px rgba(255, 214, 0, 0.18), 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+.dashboard-personal-card--border-gold-ring {
+  border: 3px solid #ffd600 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 214, 0, 0.45),
+    0 0 18px rgba(255, 214, 0, 0.18);
+}
+
+.dashboard-border-preview--gold-ring {
+  border: 3px solid #ffd600;
+}
+
+.dashboard-personal-card--border-blue-glow {
+  border: 3px solid #5db7ff !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(93, 183, 255, 0.35),
+    0 0 20px rgba(27, 127, 212, 0.28);
+}
+
+.dashboard-border-preview--blue-glow {
+  border: 3px solid #5db7ff;
+  box-shadow: 0 0 12px rgba(27, 127, 212, 0.35);
+}
+
+.dashboard-personal-card--border-safety-stripe {
+  border: 4px solid transparent !important;
+  position: relative;
+  border-radius: 10px;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.dashboard-personal-card--border-safety-stripe > .card-header,
+.dashboard-personal-card--border-safety-stripe > .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-personal-card--border-safety-stripe > .card-header {
+  margin: 4px 4px 0 4px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.dashboard-personal-card--border-safety-stripe > .card-body {
+  margin: 0 4px 4px 4px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.dashboard-personal-card--border-safety-stripe::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 4px;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    135deg,
+    #ffd600 0 12px,
+    #ff6600 12px 24px
+  );
+  z-index: 0;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.dashboard-border-preview--safety-stripe {
+  border: 4px solid transparent;
+  background:
+    linear-gradient(#2d2f33, #2d2f33) padding-box,
+    repeating-linear-gradient(135deg, #ffd600 0 12px, #ff6600 12px 24px) border-box;
+}
+
+.dashboard-personal-card--border-steel-frame {
+  border: 3px solid #aeb7c2 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(174, 183, 194, 0.28);
+}
+
+.dashboard-border-preview--steel-frame {
+  border: 3px solid #aeb7c2;
+}
+
+.dashboard-personal-card--border-ember-outline {
+  border: 3px solid #ff7b39 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 123, 57, 0.38),
+    0 0 20px rgba(255, 102, 0, 0.22);
+}
+
+.dashboard-border-preview--ember-outline {
+  border: 3px solid #ff7b39;
+}
+
+.dashboard-activity-card--border-signal-ring {
+  border: 3px solid #5db7ff !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(93, 183, 255, 0.32),
+    0 0 18px rgba(27, 127, 212, 0.24);
+}
+
+.dashboard-border-preview--signal-ring {
+  border: 3px solid #5db7ff;
+  box-shadow: 0 0 12px rgba(27, 127, 212, 0.35);
+}
+
+.dashboard-activity-card--border-amber-rail {
+  border: 3px solid #ffb347 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 179, 71, 0.34),
+    0 0 18px rgba(255, 102, 0, 0.18);
+}
+
+.dashboard-border-preview--amber-rail {
+  border: 3px solid #ffb347;
+}
+
+.dashboard-activity-card--border-route-stripe {
+  border: 4px solid transparent !important;
+  position: relative;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.dashboard-activity-card--border-route-stripe > .card-header,
+.dashboard-activity-card--border-route-stripe > .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-activity-card--border-route-stripe > .card-header {
+  margin: 4px 4px 0 4px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.dashboard-activity-card--border-route-stripe > .card-body {
+  margin: 0 4px 4px 4px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.dashboard-activity-card--border-route-stripe::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 4px;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    135deg,
+    #1b7fd4 0 12px,
+    #ffd600 12px 24px,
+    #ff6600 24px 36px
+  );
+  z-index: 0;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.dashboard-border-preview--route-stripe {
+  border: 4px solid transparent;
+  background:
+    linear-gradient(#2d2f33, #2d2f33) padding-box,
+    repeating-linear-gradient(135deg, #1b7fd4 0 12px, #ffd600 12px 24px, #ff6600 24px 36px) border-box;
+}
+
+.dashboard-activity-card--border-steel-panel {
+  border: 3px solid #aeb7c2 !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(174, 183, 194, 0.26);
+}
+
+.dashboard-border-preview--steel-panel {
+  border: 3px solid #aeb7c2;
+}
+
+.dashboard-activity-card--border-night-pulse {
+  border: 3px solid #8e79ff !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(142, 121, 255, 0.34),
+    0 0 20px rgba(102, 198, 255, 0.18);
+}
+
+.dashboard-border-preview--night-pulse {
+  border: 3px solid #8e79ff;
+  box-shadow: 0 0 12px rgba(142, 121, 255, 0.28);
+}
+
+.points-shop-preview {
+  width: 100%;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+}
+
+.points-shop-preview--background {
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.points-shop-preview--border {
+  height: 120px;
+  border-radius: 12px;
+}
+
+/* Base action button — secondary style */
 .report-action-btn {
-    background-color: #6c757d;   /* dark gray */
-    color: white;
-    border: none;
+    background-color: var(--dark-border);
+    color: var(--text-primary);
+    border: 1px solid var(--dark-border);
     padding: 10px 16px;
     font-weight: 500;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-/* Hover state */
 .report-action-btn:hover {
-    background-color: #5a6268;
-    color: white;
+    background-color: var(--safety-orange);
+    border-color: var(--safety-orange);
+    color: #fff;
 }
 
-/* Primary action button (Report Issue) */
+/* Primary action button — safety orange */
 .report-action-btn--primary {
-    background-color: #343a40;   /* darker charcoal */
+    background-color: var(--safety-orange);
+    border-color: var(--safety-orange);
+    color: #fff;
+    font-weight: 600;
 }
 
-/* Hover for primary */
 .report-action-btn--primary:hover {
-    background-color: #23272b;
+    background-color: #e05a00;
+    border-color: #e05a00;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 102, 0, 0.4);
+}
+
+/* Map container */
+#map {
+    border: 2px solid var(--dark-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /*================
   Road Camera Styling
   ===================*/
-  .camera-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.camera-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
+    /* Resting glow — same treatment as other clickable cards */
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.65),
+        0 0 12px rgba(255, 102, 0, 0.18),
+        0 0 0 1px rgba(255, 102, 0, 0.25);
+    border-color: rgba(255, 102, 0, 0.3);
 }
 
 .camera-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 10px 18px rgba(0,0,0,0.18);
+    box-shadow:
+        0 10px 32px rgba(0, 0, 0, 0.7),
+        0 0 22px rgba(255, 102, 0, 0.45),
+        0 0 0 1px rgba(255, 102, 0, 0.6);
+    border-color: var(--safety-orange);
 }
 
 /* =========================
@@ -134,24 +796,27 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgb(250, 178, 178);
-    border: 1px solid #f59f9f;
+    background: var(--dark-surface);
+    border: 1px solid var(--safety-orange);
     border-top: none;
     border-radius: 0 0 6px 6px;
     max-height: 220px;
     overflow-y: auto;
-    box-shadow: 0 4px 10px rgba(238, 178, 178, 0.08);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 .autocomplete-item {
     padding: 10px 12px;
     cursor: pointer;
-    border-bottom: 1px solid #f57e7e;
+    border-bottom: 1px solid var(--dark-border);
+    color: var(--text-primary);
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .autocomplete-item:hover,
 .autocomplete-item.active {
-    background-color: #59a5f1;
+    background-color: rgba(255, 102, 0, 0.15);
+    color: var(--safety-orange);
 }
 
 .autocomplete-item:last-child {

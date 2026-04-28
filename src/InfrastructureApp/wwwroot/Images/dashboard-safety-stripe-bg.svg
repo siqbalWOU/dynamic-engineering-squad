@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="none">
+  <rect width="1200" height="600" fill="#1d1f22"/>
+  <g opacity="0.82">
+    <path d="M-120 620 L170 -20 L270 -20 L-20 620 Z" fill="#ffd600"/>
+    <path d="M80 620 L370 -20 L470 -20 L180 620 Z" fill="#ff6600"/>
+    <path d="M280 620 L570 -20 L670 -20 L380 620 Z" fill="#ffd600"/>
+    <path d="M480 620 L770 -20 L870 -20 L580 620 Z" fill="#ff6600"/>
+    <path d="M680 620 L970 -20 L1070 -20 L780 620 Z" fill="#ffd600"/>
+    <path d="M880 620 L1170 -20 L1270 -20 L980 620 Z" fill="#ff6600"/>
+  </g>
+  <rect width="1200" height="600" fill="#0f1012" opacity="0.42"/>
+</svg>

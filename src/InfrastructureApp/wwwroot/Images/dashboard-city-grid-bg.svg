@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="city" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f1720"/>
+      <stop offset="100%" stop-color="#24384a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#city)"/>
+  <g stroke="#79b6ff" stroke-opacity="0.18" stroke-width="2">
+    <path d="M0 140H1200"/>
+    <path d="M0 220H1200"/>
+    <path d="M0 300H1200"/>
+    <path d="M0 380H1200"/>
+    <path d="M0 460H1200"/>
+    <path d="M160 0V600"/>
+    <path d="M320 0V600"/>
+    <path d="M480 0V600"/>
+    <path d="M640 0V600"/>
+    <path d="M800 0V600"/>
+    <path d="M960 0V600"/>
+  </g>
+  <path d="M0 500 L140 420 L260 470 L400 350 L520 410 L650 250 L770 320 L890 180 L1010 240 L1200 90 L1200 600 L0 600 Z"
+        fill="#0d1319" opacity="0.7"/>
+  <circle cx="1000" cy="120" r="110" fill="#ffd600" opacity="0.12"/>
+</svg>

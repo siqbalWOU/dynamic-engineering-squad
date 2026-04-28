@@ -7,13 +7,13 @@ namespace InfrastructureApp.Controllers
     // Controller handles requests for Reports pages
     public class ReportsController : Controller
     {
-        // Repository handles all database logic 
         private readonly IReportIssueRepository _repo;
+        private readonly IVerifyFixService _verifyFixService;
 
-        // Inject repository through constructor (Dependency Injection)
-        public ReportsController(IReportIssueRepository repo)
+        public ReportsController(IReportIssueRepository repo, IVerifyFixService verifyFixService)
         {
             _repo = repo;
+            _verifyFixService = verifyFixService;
         }
 
         // GET: /Reports/Latest
@@ -29,6 +29,25 @@ namespace InfrastructureApp.Controllers
             var vm = new LatestReportsViewModel
             {
                 Reports = reports
+            };
+
+            return View(vm);
+        }
+
+        // GET: /Reports/Verify
+        [HttpGet]
+        public async Task<IActionResult> Verify()
+        {
+            var reports = await _repo.GetResolvedReportsAsync();
+            var counts = await _verifyFixService.GetVerifyCountsAsync(reports.Select(r => r.Id));
+
+            var vm = new VerifyFixViewModel
+            {
+                Reports = reports.Select(r => new VerifyFixItemViewModel
+                {
+                    Report = r,
+                    VerifyCount = counts.GetValueOrDefault(r.Id, 0)
+                }).ToList()
             };
 
             return View(vm);

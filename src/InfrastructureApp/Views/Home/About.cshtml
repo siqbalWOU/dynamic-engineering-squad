@@ -1,68 +1,181 @@
 @{
     ViewData["Title"] = "About";
-
 }
 
-<div class="container py-4">
-    <h1>About InfrastrucutreApp</h1>
+<div class="container py-5">
 
-    <section class="mt-4">
-        <h2>Purpose</h2>
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold"><i class="fa-solid fa-circle-info me-2 text-info"></i>About PatchNotes</h1>
+        <p class="lead text-muted">A community-driven platform for reporting and tracking infrastructure issues</p>
+        <hr class="border-secondary w-50 mx-auto" />
+    </div>
 
-        <p>
-            InfrastructureApp helps community members report everyday infrastructure issues so the right people can
-            see them and take action. The goal is to make it easier to share concerns like potholes, damaged signs,
-            unsafe sidewalks, or other public-space problems while enjoying a new game.
-        </p>
-    </section>
+    <!-- Section: The App -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-city me-2"></i>The App
+    </h2>
 
-    <section class="mt-4">
-        <h2>The problem we're solving</h2>
-        <p>
-            Many people notice issues in their neighborhood but don’t know where to report them, or the process feels
-            confusing and time-consuming. This app provides a simple place to submit reports and view helpful, high-level
-            information about what has been reported.
-        </p>
-    </section>
+    <div class="accordion mb-5" id="accordionApp">
 
-    <section class="mt-4">
-        <h2>Who it's for</h2>
-        <ul>
-            <li><strong>Residents and visitors</strong> who want to report infrastrucutre problems</li>
-            <li><strong>City staff (or admins)</strong> who review reports and update public-facing information</li>
-        </ul>
-    </section>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-purpose">
+                    What is PatchNotes?
+                </button>
+            </h3>
+            <div id="about-purpose" class="accordion-collapse collapse" data-bs-parent="#accordionApp">
+                <div class="accordion-body text-light">
+                    PatchNotes is a community-driven infrastructure reporting platform. It lets residents and
+                    visitors flag real-world problems — potholes, broken streetlights, damaged sidewalks, and
+                    more — so they can be tracked and fixed. It also adds a gamified twist: earn XP and climb
+                    the leaderboard as you help improve your city.
+                </div>
+            </div>
+        </div>
 
-    <section class="mt-4">
-        <h2>How it works (high-level)</h2>
-        <ul>
-            <li>Users can submit infrastructure issue reports.</li>
-            <li>Reports are reviewed and used to help track common issues.</li>
-            <li>The app may show summary information and community contributions.</li>
-        </ul>
-        <p class="text-muted">
-            Note: This page is intentionally high-level and does not describe sensitive technical implementation details.
-        </p>
-    </section>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-problem">
+                    What problem does it solve?
+                </button>
+            </h3>
+            <div id="about-problem" class="accordion-collapse collapse" data-bs-parent="#accordionApp">
+                <div class="accordion-body text-light">
+                    Many people notice issues in their neighborhood but don't know where to report them, or
+                    the process feels confusing and time-consuming. PatchNotes provides a simple place to
+                    submit reports and view helpful, high-level information about what has been reported —
+                    all while earning recognition for your contributions.
+                </div>
+            </div>
+        </div>
 
-    <section class="mt-4">
-        <h2>Project info</h2>
-        <ul>
-            <li><strong>Project:</strong> InfrastructureApp</li>
-            <li><strong>Created by:</strong> (Dynamic Engineering Squad)</li>
-            <li><strong>Team Members:</strong>Erin Anderson, Julian Aguilar, Sunair Iqbal, Phillip Alter</li>
-            <li><strong>Course/Organization:</strong>Software Engineering/WOU</li>
-        </ul>
-    </section>
+    </div>
 
-    <!-- <section class="mt-4">
-        <h2>Support</h2>
-        <p>
-            Need help or have feedback? Contact us at:
-            <a href="mailto:support@example.com">support@example.com</a>
-        </p>
-        <p>
-            You can also check the <a asp-controller="Home" asp-action="FAQ">FAQ</a> if it’s available in the app.
-        </p>
-    </section> -->
+    <!-- Section: Who It's For -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-users me-2"></i>Who It's For
+    </h2>
+
+    <div class="accordion mb-5" id="accordionWho">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-residents">
+                    Residents and Visitors
+                </button>
+            </h3>
+            <div id="about-residents" class="accordion-collapse collapse" data-bs-parent="#accordionWho">
+                <div class="accordion-body text-light">
+                    Anyone who spots an infrastructure problem in their community can use PatchNotes to
+                    report it. Snap a photo, describe the issue, and submit — then earn XP for every
+                    report you make and every fix you verify.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-admins">
+                    City Staff and Admins
+                </button>
+            </h3>
+            <div id="about-admins" class="accordion-collapse collapse" data-bs-parent="#accordionWho">
+                <div class="accordion-body text-light">
+                    Administrators can review submitted reports, update their status as issues are
+                    addressed, and manage public-facing information. This keeps the community informed
+                    and helps track common recurring problems across the city.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: How It Works -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-gears me-2"></i>How It Works
+    </h2>
+
+    <div class="accordion mb-5" id="accordionHow">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-reporting">
+                    Reporting an Issue
+                </button>
+            </h3>
+            <div id="about-reporting" class="accordion-collapse collapse" data-bs-parent="#accordionHow">
+                <div class="accordion-body text-light">
+                    Users can submit infrastructure issue reports with a description and photo. Reports
+                    are stored and made visible to other community members and administrators so problems
+                    can be identified and addressed.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-xp">
+                    Earning XP and Rankings
+                </button>
+            </h3>
+            <div id="about-xp" class="accordion-collapse collapse" data-bs-parent="#accordionHow">
+                <div class="accordion-body text-light">
+                    Every report you submit and every fix you verify earns you XP. Your total points
+                    place you on the community leaderboard, where top contributors are ranked and
+                    recognized for their efforts.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: The Team -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-people-group me-2"></i>The Team
+    </h2>
+
+    <div class="accordion mb-5" id="accordionTeam">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#about-team">
+                    Dynamic Engineering Squad
+                </button>
+            </h3>
+            <div id="about-team" class="accordion-collapse collapse" data-bs-parent="#accordionTeam">
+                <div class="accordion-body text-light">
+                    PatchNotes was built by the Dynamic Engineering Squad as part of a Software Engineering
+                    course at Western Oregon University.
+                    <ul class="mt-2">
+                        <li>Erin Anderson</li>
+                        <li>Julian Aguilar</li>
+                        <li>Sunair Iqbal</li>
+                        <li>Phillip Alter</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer card -->
+    <div class="card bg-dark border-secondary mt-5">
+        <div class="card-body text-center py-4">
+            <h2 class="h5 fw-bold text-info mb-2"><i class="fa-solid fa-question-circle me-2"></i>Have Questions?</h2>
+            <p class="text-muted mb-0">
+                Check out the <a asp-controller="Home" asp-action="FAQ" class="text-info">FAQ page</a> or
+                review our <a asp-controller="Home" asp-action="Privacy" class="text-info">Privacy Policy</a>
+                for more information.
+            </p>
+        </div>
+    </div>
+
 </div>

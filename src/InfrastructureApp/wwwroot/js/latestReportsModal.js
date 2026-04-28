@@ -1,76 +1,191 @@
-// Feature-81: Latest Reports modal population 
+// Feature-81: Latest Reports modal population
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Only run on pages that contain the modal
     const reportModal = document.getElementById("reportModal");
     if (!reportModal) {
         return;
     }
 
-    // Modal content elements
     const modalDescriptionElement = document.getElementById("modalDescription");
     const modalCreatedElement = document.getElementById("modalCreated");
     const modalStatusElement = document.getElementById("modalStatus");
 
-    // Modal image elements
+    const modalVerifySection = document.getElementById("modalVerifySection");
+    const modalVerifyBtn = document.getElementById("modalVerifyBtn");
+    const modalVerifyCount = document.getElementById("modalVerifyCount");
+    const modalVerifyPlural = document.getElementById("modalVerifyPlural");
+
+    const modalFlagBtn = document.getElementById("modalFlagBtn");
     const modalImageElement = document.getElementById("modalImage");
     const modalImageFallbackElement = document.getElementById("modalImageFallback");
-
-    // -------------------------------------------------------
-    // SCRUM-101 ADDED
-    // URL link that opens the existing ReportIssue details page
-    // Example: /ReportIssue/Details/5
-    // -------------------------------------------------------
     const openFullReportLink = document.getElementById("openFullReportLink");
 
-    // -------------------------------------------------------
-    // SCRUM-101 / pushState EXPERIMENT ADDED
-    // Keep track of the Latest Reports page URL so it can be
-    // restored after the modal is closed.
-    // This is the concept Chris suggested.
-    // -------------------------------------------------------
     const latestReportsUrl = "/Reports/Latest";
 
-    // -------------------------------------------------------
-    // SCRUM-101 / pushState EXPERIMENT ADDED
-    // Update the browser URL to match the selected report
-    // without reloading the page.
-    // -------------------------------------------------------
+    function getAntiForgeryToken() {
+        const field = document.querySelector('input[name="__RequestVerificationToken"]');
+        return field ? field.value : "";
+    }
+
+    async function loadVerifyStatus(reportId) {
+        if (!modalVerifySection) return;
+        try {
+            const res = await fetch(`/VerifyFix/Status/${reportId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            updateVerifyUI(data);
+        } catch { }
+    }
+
+    async function loadFlagStatus(reportId) {
+        if (!modalFlagBtn) return;
+        try {
+            const res = await fetch(`/Flag/Status?reportId=${reportId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            updateFlagUI(data.hasUserFlagged);
+        } catch { }
+    }
+
+    function updateFlagUI(hasUserFlagged) {
+        if (!modalFlagBtn) return;
+
+        const iconMarkup = '<i class="fa-solid fa-flag me-1"></i>';
+        modalFlagBtn.disabled = hasUserFlagged;
+        modalFlagBtn.innerHTML = hasUserFlagged ? `${iconMarkup}Already Flagged` : `${iconMarkup}Flag`;
+
+        if (hasUserFlagged) {
+            modalFlagBtn.classList.remove("btn-outline-danger");
+            modalFlagBtn.classList.add("btn-secondary");
+        } else {
+            modalFlagBtn.classList.remove("btn-secondary");
+            modalFlagBtn.classList.add("btn-outline-danger");
+        }
+    }
+
+    function updateVerifyUI(data) {
+        if (!modalVerifySection || !modalVerifyCount) return;
+
+        modalVerifyCount.textContent = data.verifyCount;
+        if (modalVerifyPlural) {
+            modalVerifyPlural.textContent = data.verifyCount === 1 ? "" : "s";
+        }
+
+        if (modalVerifyBtn) {
+            modalVerifyBtn.classList.toggle("btn-outline-success", !data.userHasVerified);
+            modalVerifyBtn.classList.toggle("btn-success", data.userHasVerified);
+        }
+    }
+
     function pushReportUrl(reportId) {
         if (!reportId) return;
 
         const newUrl = `/ReportIssue/Details/${reportId}`;
-
-        // Avoid pushing duplicate history entries for the same URL
         if (window.location.pathname !== newUrl) {
             history.pushState({ reportId: reportId }, "", newUrl);
         }
     }
 
-    // -------------------------------------------------------
-    // SCRUM-101 / pushState EXPERIMENT ADDED
-    // Restore browser URL back to the Latest Reports page
-    // after the modal is closed.
-    // -------------------------------------------------------
     function restoreLatestReportsUrl() {
         if (window.location.pathname !== latestReportsUrl) {
             history.replaceState({}, "", latestReportsUrl);
         }
     }
 
-    // -------------------------------------------------------
-    // SCRUM-101 / pushState EXPERIMENT ADDED
-    // When the modal closes, restore the URL to /Reports/Latest
-    // -------------------------------------------------------
+    function showModal(modalElement) {
+        if (window.bootstrap?.Modal) {
+            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            return;
+        }
+
+        modalElement.style.display = "block";
+        modalElement.removeAttribute("aria-hidden");
+        modalElement.setAttribute("aria-modal", "true");
+        modalElement.classList.add("show");
+        document.body.classList.add("modal-open");
+    }
+
+    function populateModalImage(imageUrl) {
+        if (!modalImageElement || !modalImageFallbackElement) {
+            return;
+        }
+
+        modalImageElement.onerror = null;
+
+        if (imageUrl.trim().length > 0) {
+            modalImageElement.onerror = function () {
+                showBrokenImageFallback(modalImageElement, modalImageFallbackElement);
+            };
+
+            modalImageElement.src = imageUrl;
+            modalImageElement.classList.remove("d-none");
+            modalImageFallbackElement.classList.add("d-none");
+            modalImageFallbackElement.innerHTML = "";
+            return;
+        }
+
+        showMissingImageFallback(modalImageElement, modalImageFallbackElement);
+    }
+
+    function populateReportModal(item) {
+        const description = item.dataset.description || "";
+        const created = item.dataset.created || "";
+        const status = item.dataset.status || "";
+        const imageUrl = item.dataset.image || "";
+        const reportId = item.dataset.reportid || item.dataset.reportId || "";
+
+        if (openFullReportLink && reportId) {
+            openFullReportLink.href = `/ReportIssue/Details/${reportId}`;
+        }
+
+        if (modalVerifySection && modalVerifyBtn) {
+            if (status === "Approved") {
+                modalVerifyBtn.dataset.reportId = reportId;
+                modalVerifySection.classList.remove("d-none");
+                if (modalVerifyCount) {
+                    modalVerifyCount.textContent = "0";
+                }
+                loadVerifyStatus(reportId);
+            } else {
+                modalVerifySection.classList.add("d-none");
+            }
+        }
+
+        if (modalFlagBtn) {
+            modalFlagBtn.dataset.reportId = reportId;
+            loadFlagStatus(reportId);
+        }
+
+        pushReportUrl(reportId);
+
+        if (modalDescriptionElement) {
+            modalDescriptionElement.textContent = description;
+        }
+
+        if (modalCreatedElement) {
+            modalCreatedElement.textContent = created;
+        }
+
+        if (modalStatusElement) {
+            modalStatusElement.textContent = status;
+        }
+
+        populateModalImage(imageUrl);
+    }
+
+    window.openLatestReportModal = function (item) {
+        if (!item) {
+            return;
+        }
+
+        populateReportModal(item);
+        showModal(reportModal);
+    };
+
     reportModal.addEventListener("hidden.bs.modal", function () {
         restoreLatestReportsUrl();
     });
 
-    // -------------------------------------------------------
-    // SCRUM-101 / pushState EXPERIMENT ADDED
-    // If the user presses the browser Back button while the
-    // modal is open, close the modal.
-    // -------------------------------------------------------
     window.addEventListener("popstate", function () {
         const modalInstance = bootstrap.Modal.getInstance(reportModal);
         if (modalInstance) {
@@ -78,171 +193,89 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Get all clickable report items
-    const reportItems = document.querySelectorAll(".report-item");
+    document.addEventListener("click", function (event) {
+        const item = event.target.closest(".report-item");
+        if (!item) {
+            return;
+        }
 
-    reportItems.forEach(function (item) {
+        window.openLatestReportModal(item);
+    });
 
-        item.addEventListener("click", function () {
+    if (modalVerifyBtn) {
+        modalVerifyBtn.addEventListener("click", async function () {
+            const reportId = modalVerifyBtn.dataset.reportId;
 
-            const description = this.dataset.description || "";
-            const created = this.dataset.created || "";
-            const status = this.dataset.status || "";
-            const imageUrl = this.dataset.image || ""; // read image URL from data-image attribute
+            try {
+                const res = await fetch(`/VerifyFix/Toggle/${reportId}`, {
+                    method: "POST",
+                    headers: { "RequestVerificationToken": getAntiForgeryToken() }
+                });
 
-            // -------------------------------------------------------
-            // SCRUM-101 ADDED
-            // Read report id so the modal can show a unique URL link
-            // -------------------------------------------------------
-            const reportId = this.dataset.reportid || "";
-
-            // -------------------------------------------------------
-            // SCRUM-101 ADDED
-            // Point the modal link to Sunair's existing details page
-            // -------------------------------------------------------
-            if (openFullReportLink && reportId) {
-                openFullReportLink.href = `/ReportIssue/Details/${reportId}`;
-            }
-
-            // -------------------------------------------------------
-            // SCRUM-101 / pushState EXPERIMENT ADDED
-            // Update the browser URL when the modal opens so the
-            // selected report has a contextual deep link.
-            // -------------------------------------------------------
-            pushReportUrl(reportId);
-
-            if (modalDescriptionElement) {
-                modalDescriptionElement.textContent = description;
-            }
-
-            if (modalCreatedElement) {
-                modalCreatedElement.textContent = created;
-            }
-
-            if (modalStatusElement) {
-                modalStatusElement.textContent = status;
-            }
-
-            // Image handling logic 
-            if (modalImageElement && modalImageFallbackElement) {
-
-                //SCRUM-102 ADDED
-                //Clear any old error handler before setting a new image
-                modalImageElement.onerror = null;
-
-                if (imageUrl.trim().length > 0) {
-
-                    //SCRUM-102 ADDDED
-                    //If the image file fails to load, hide the broken image
-                    // and show a clear fallback message instead.
-                    modalImageElement.onerror = function(){
-                        modalImageElement.removeAttribute("src")
-                        modalImageElement.classList.add("d-none");
-
-                        modalImageFallbackElement.innerHTML = "<strong>⚠ Image could not be loaded.</strong> The image file may be missing.";
-                        modalImageFallbackElement.classList.remove("d-none");
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location.href = "/Account/Login";
                     }
-
-                    // Show image if URL exists
-                    modalImageElement.src = imageUrl;
-                    modalImageElement.classList.remove("d-none");
-
-                    modalImageFallbackElement.classList.add("d-none");
-                    modalImageFallbackElement.innerHTML = "";
+                    return;
                 }
-                else {
-                    // Show fallback message if no image
-                    modalImageElement.removeAttribute("src");
-                    modalImageElement.classList.add("d-none");
 
-                    modalImageFallbackElement.innerHTML = "<strong>📷 No image available.</strong> This report was submitted without an image.";
-                    modalImageFallbackElement.classList.remove("d-none");
-                }
+                const data = await res.json();
+                updateVerifyUI(data);
+            } catch (err) {
+                console.error("Verify request failed:", err);
             }
         });
-    });
+    }
 });
 
 // SCRUM-101 test helper
-// Sets the modal link to the correct report details page
 function setReportDetailsLink(linkElement, reportId) {
-
-    // Only update the link if both values exist
     if (linkElement && reportId) {
-
-        // Create the URL for the report details page
         linkElement.href = `/ReportIssue/Details/${reportId}`;
     }
 }
 
 // SCRUM-101 test helper
-// Stores the URL for the Latest Reports page
 const latestReportsUrl = "/Reports/Latest";
 
 // SCRUM-101 test helper
-// Updates the browser URL when a report is opened in the modal
 function pushReportUrl(reportId) {
-
-    // Do nothing if reportId is missing
     if (!reportId) return;
 
-    // Build the new report details URL
     const newUrl = `/ReportIssue/Details/${reportId}`;
-
-    // Avoid pushing the same URL multiple times
     if (window.location.pathname !== newUrl) {
-
-        // Update the browser history without reloading the page
         history.pushState({ reportId: reportId }, "", newUrl);
     }
 }
 
 // SCRUM-101 test helper
-// Restores the browser URL back to the Latest Reports page
 function restoreLatestReportsUrl() {
-
-    // Only change the URL if it is not already Latest Reports
     if (window.location.pathname !== latestReportsUrl) {
-
-        // Replace the current history entry with the Latest Reports URL
         history.replaceState({}, "", latestReportsUrl);
     }
 }
 
-
-// -------------------------------------------------------
 // SCRUM-102 test helpers
-// These functions allow Jest tests to verify image fallback behavior
-// -------------------------------------------------------
-
-// Shows fallback when a report has no image URL
 function showMissingImageFallback(modalImageElement, modalImageFallbackElement) {
-
     modalImageElement.removeAttribute("src");
     modalImageElement.classList.add("d-none");
 
     modalImageFallbackElement.innerHTML =
-        "<strong>📷 No image available.</strong> This report was submitted without an image.";
+        "<strong>ðŸ“· No image available.</strong> This report was submitted without an image.";
 
     modalImageFallbackElement.classList.remove("d-none");
 }
 
-// Shows fallback when an image file fails to load
 function showBrokenImageFallback(modalImageElement, modalImageFallbackElement) {
-
     modalImageElement.removeAttribute("src");
     modalImageElement.classList.add("d-none");
 
     modalImageFallbackElement.innerHTML =
-        "<strong>⚠ Image could not be loaded.</strong> The image file may be missing.";
+        "<strong>âš  Image could not be loaded.</strong> The image file may be missing.";
 
     modalImageFallbackElement.classList.remove("d-none");
 }
 
-
-
-// SCRUM-101 / SCRUM-102 test exports
-// Allows Jest tests to import helper functions
 if (typeof module !== "undefined") {
     module.exports = {
         setReportDetailsLink,

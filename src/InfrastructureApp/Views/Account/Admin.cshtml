@@ -1,11 +1,29 @@
 ﻿@using InfrastructureApp.ViewModels.Account;
 @using InfrastructureApp.Models;
+@using System.Security.Claims
 @model PaginatedList<Users>
 @{
     ViewData["Title"] = "Admin Panel";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <h1>Admin Panel</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <table class="table table-striped">
     <thead>
@@ -25,11 +43,41 @@
             <td>@(user.Roles != null ? string.Join(", ", user.Roles) : "No Roles")</td>
             <td>
                 <a asp-action="EditRoles" asp-controller="Account" asp-route-userId="@user.Id" class="btn btn-sm btn-primary">Edit</a>
+                @if (user.Id != currentUserId)
+                {
+                    <button type="button" class="btn btn-sm btn-danger delete-user-btn" 
+                            data-userid="@user.Id" data-username="@user.UserName"
+                            data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                        Remove
+                    </button>
+                }
             </td>
         </tr>
     }
     </tbody>
 </table>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <span id="deleteUserName"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteUser" asp-controller="Account" method="post">
+                    <input type="hidden" name="userId" id="deleteUserId" value="" />
+                    <button type="submit" class="btn btn-danger" id="confirmDeleteButton">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <nav aria-label="User pagination">
     <ul class="pagination">
@@ -52,3 +100,24 @@
         </li>
     </ul>
 </nav>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteModal = document.getElementById('confirmDeleteModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const userId = button.getAttribute('data-userid');
+                    const userName = button.getAttribute('data-username');
+
+                    const modalUserName = deleteModal.querySelector('#deleteUserName');
+                    const modalUserIdInput = deleteModal.querySelector('#deleteUserId');
+
+                    modalUserName.textContent = userName;
+                    modalUserIdInput.value = userId;
+                });
+            }
+        });
+    </script>
+}

@@ -1,9 +1,12 @@
 using InfrastructureApp.Controllers;
 using InfrastructureApp.Models;
 using InfrastructureApp.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using NUnit.Framework;
+using System.Security.Claims;
 
 namespace InfrastructureApp_Tests
 {
@@ -23,9 +26,37 @@ namespace InfrastructureApp_Tests
             // without calling the real database.
             _service = Substitute.For<IReportIssueService>();
 
+            var userManager = MakeUserManager();
+
+            var voteService = Substitute.For<IVoteService>();
+            voteService.GetVoteStatusAsync(Arg.Any<int>(), Arg.Any<string?>())
+                .Returns((0, false));
+
+            var verifyFixService = Substitute.For<IVerifyFixService>();
+            verifyFixService.GetVerifyStatusAsync(Arg.Any<int>(), Arg.Any<string?>())
+                .Returns((0, false));
+
+            var flagService = Substitute.For<IFlagService>();
+
             // SCRUM-101
             // Initialize the controller used to test the Details URL behavior.
-            _controller = new ReportIssueController(_service, null!);
+            _controller = new ReportIssueController(_service, userManager, voteService, verifyFixService, flagService)
+            {
+                ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext
+                    {
+                        User = new ClaimsPrincipal(new ClaimsIdentity())
+                    }
+                }
+            };
+        }
+
+        private static UserManager<Users> MakeUserManager()
+        {
+            var store = Substitute.For<IUserStore<Users>>();
+            return Substitute.For<UserManager<Users>>(
+                store, null!, null!, null!, null!, null!, null!, null!, null!);
         }
 
         [TearDown]

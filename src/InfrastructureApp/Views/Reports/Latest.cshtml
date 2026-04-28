@@ -9,15 +9,15 @@
     ViewData["Title"] = "Latest Reports";
 }
 
-<h1 class="mb-3">Latest Reports</h1>
+<h1 class="mb-3"><i class="fa-solid fa-scroll me-2 text-safety-orange"></i>Latest Reports</h1>
 
 <div class="mb-3 d-flex gap-2">
     <input id="latestSearchInput" class="form-control" type="text" placeholder="Search reports..." />
-    <button id="latestSearchButton" class="btn btn-primary" type="button">Search</button>
+    <button id="latestSearchButton" class="btn btn-primary" type="button"><i class="fa-solid fa-magnifying-glass me-1"></i>Search</button>
     <button id="latestClearButton" class="btn btn-outline-secondary" type="button">Clear</button>
 </div>
 
-<div id="latestSearchMessage" class="mb-2"></div>
+<div id="latestSearchMessage" class="mb-2 text-safety-orange fw-semibold"></div>
 
 <!-- SCRUM-86 ADDED: Sort dropdown allows user to select newest or oldest -->
 <select id="latestSortSelect" class="form-select" style="max-width: 200px;">
@@ -40,11 +40,15 @@ else
 
             <button type="button"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-start report-item"
+                    data-testid="latest-report-item"
+                    aria-controls="reportModal"
+                    onclick="window.openLatestReportModal?.(this)"
+                    data-report-id="@r.Id"
                     data-bs-toggle="modal" data-bs-target="#reportModal" data-reportid="@r.Id" data-description="@r.Description"
                     data-created="@r.CreatedAt.ToLocalTime().ToString("f")" data-status="@r.Status" data-image="@r.ImageUrl">
 
                 <div class="me-3">
-                    <div class="fw-bold">@r.Description</div>
+                    <div class="fw-bold report-text-wrap text-break">@r.Description</div>
                 </div>
 
                 <small class="text-muted">
@@ -56,7 +60,7 @@ else
     </div>
 }
 <!-- Report Details Modal -->
-<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+<div class="modal fade" id="reportModal" data-testid="report-modal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
@@ -74,7 +78,7 @@ else
                 </div>
 
                 <p class="mb-1"><strong>Description</strong></p>
-                <p id="modalDescription" class="mb-3"></p>
+                <p id="modalDescription" class="mb-3 report-text-wrap text-break"></p>
 
                 <p class="mb-1"><strong>Created</strong></p>
                 <p id="modalCreated" class="mb-3"></p>
@@ -90,21 +94,82 @@ else
                 </p>
             </div>
 
-            <div class="modal-footer">
-                <!-- SCRUM-101 ADDED: unique URL link to existing ReportIssue details page -->
-                <a id="openFullReportLink" class="btn btn-link" href="#" target="_blank"> View Details </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex flex-column gap-2">
+                    <!-- Community upvote -->
+                    <div class="d-flex align-items-center gap-2">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button id="modalVoteBtn" class="btn btn-outline-primary btn-sm fw-bold" data-report-id="">
+                                <i class="fa-solid fa-thumbs-up me-1"></i>
+                                I've seen this too
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-sm fw-bold">
+                                <i class="fa-solid fa-thumbs-up me-1"></i>
+                                I've seen this too
+                            </a>
+                        }
+                        <span class="text-muted small"><span id="modalVoteCount">0</span> vote<span id="modalVotePlural">s</span></span>
+                    </div>
+                    <!-- Community fix verification (only shown for Approved reports) -->
+                    <div id="modalVerifySection" class="d-flex align-items-center gap-2 d-none">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button id="modalVerifyBtn" class="btn btn-outline-success btn-sm fw-bold" data-report-id="">
+                                <i class="fa-solid fa-circle-check me-1"></i>
+                                I've verified this is fixed
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success btn-sm fw-bold">
+                                <i class="fa-solid fa-circle-check me-1"></i>
+                                I've verified this is fixed
+                            </a>
+                        }
+                        <span class="text-muted small"><span id="modalVerifyCount">0</span> verification<span id="modalVerifyPlural">s</span></span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <!-- Community Flagging -->
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <button id="modalFlagBtn" data-testid="flag-button modal-flag-button" class="btn btn-outline-danger btn-sm fw-bold" 
+                                onclick="window.showFlagModalFromButton?.(this)"
+                                data-report-id="">
+                            <i class="fa-solid fa-flag me-1"></i>
+                            Flag
+                        </button>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-danger btn-sm fw-bold">
+                            <i class="fa-solid fa-flag me-1"></i>
+                            Flag
+                        </a>
+                    }
+                    <!-- SCRUM-101 ADDED: unique URL link to existing ReportIssue details page -->
+                    <a id="openFullReportLink" class="btn btn-link" href="#" target="_blank"> View Details </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    @Html.AntiForgeryToken()
+
     <script src="~/js/latestReportsSearch.js" asp-append-version="true"></script>
     <script src="~/js/latestReportsSort.js" asp-append-version="true"></script>
     <script src="~/js/latestReportsModal.js" asp-append-version="true"></script> <!-- Added the JS file for the LatestReportsModal seperately to site.js -->
     <!-- SCRUM-86 ADDED: enables newest/oldest sorting -->
     <script src="~/js/latestReportsMap.js" asp-append-version="true"></script> <!-- SCRUM-98 ADDED -->
+    <script src="~/js/reportVote.js" asp-append-version="true"></script>
+    <script src="~/js/reportFlag.js" asp-append-version="true"></script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=@GoogleMaps.Value.ApiKey">
     </script>

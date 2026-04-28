@@ -14,5 +14,8 @@ namespace InfrastructureApp.Services
 
         // Retrieves a report by its Id. Returns null if the report does not exist.
         Task<ReportIssue?> GetByIdAsync(int id);
+
+        // Updates the status of a report. Returns false if the report does not exist.
+        Task<bool> UpdateStatusAsync(int id, string newStatus);
     }
 }

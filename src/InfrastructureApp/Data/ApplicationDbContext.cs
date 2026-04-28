@@ -19,8 +19,20 @@ namespace InfrastructureApp.Data
         //will initialize this property at runtime.
         public DbSet<UserPoints> UserPoints { get; set; } = null!;
 
+        public DbSet<ShopItem> ShopItems { get; set; } = null!;
+
+        public DbSet<UserShopItemPurchase> UserShopItemPurchases { get; set; } = null!;
+
         //this maps the reportIssue to the reports table, used for CRUD operations in EF
         public DbSet<ReportIssue> ReportIssue { get; set; } = null!;
+
+        public DbSet<ReportVote> ReportVotes { get; set; } = null!;
+
+        public DbSet<ReportVerification> ReportVerifications { get; set; } = null!;
+
+        public DbSet<ReportFlag> ReportFlags { get; set; } = null!;
+
+        public DbSet<ModerationActionLog> ModerationActionLogs { get; set; } = null!;
 
         //This is the place for constraints, defaults, indexes, and relationships
         protected override void OnModelCreating(ModelBuilder builder)
@@ -59,6 +71,52 @@ namespace InfrastructureApp.Data
             builder.Entity<UserPoints>()
                 .Property(up => up.LastUpdated)
                 .HasDefaultValueSql("SYSUTCDATETIME()");
+
+            builder.Entity<ShopItem>(entity =>
+            {
+                entity.Property(i => i.Name)
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(i => i.Description)
+                    .HasMaxLength(500)
+                    .IsRequired();
+
+                entity.Property(i => i.CostPoints)
+                    .IsRequired();
+
+                entity.Property(i => i.IsSinglePurchase)
+                    .HasDefaultValue(true);
+
+                entity.Property(i => i.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.Property(i => i.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasIndex(i => i.Name)
+                    .IsUnique();
+            });
+
+            builder.Entity<UserShopItemPurchase>(entity =>
+            {
+                entity.Property(p => p.UserId)
+                    .HasMaxLength(450)
+                    .IsRequired();
+
+                entity.Property(p => p.CostPoints)
+                    .IsRequired();
+
+                entity.Property(p => p.PurchasedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasOne(p => p.ShopItem)
+                    .WithMany()
+                    .HasForeignKey(p => p.ShopItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(p => new { p.UserId, p.ShopItemId, p.PurchasedAt });
+            });
 
 
 
@@ -109,6 +167,21 @@ namespace InfrastructureApp.Data
                 // "Has this same user already uploaded this same exact image?"
                 entity.HasIndex(r => new { r.UserId, r.ImageSha256 });
             });
+
+            // One vote per user per report
+            builder.Entity<ReportVote>()
+                .HasIndex(v => new { v.ReportIssueId, v.UserId })
+                .IsUnique();
+
+            // One verification per user per report
+            builder.Entity<ReportVerification>()
+                .HasIndex(v => new { v.ReportIssueId, v.UserId })
+                .IsUnique();
+
+            // One flag per user per report
+            builder.Entity<ReportFlag>()
+                .HasIndex(f => new { f.ReportIssueId, f.UserId })
+                .IsUnique();
 
         }
     }

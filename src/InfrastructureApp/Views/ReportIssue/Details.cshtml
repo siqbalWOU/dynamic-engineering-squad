@@ -22,8 +22,42 @@
 
     <div class="report-card">
         <p><strong>Status:</strong> @Model.Status</p>
+        @{
+            var severityClass = Model.SeverityStatus switch
+            {
+                "Low" => "bg-success",
+                "Medium" => "bg-warning text-dark",
+                "High" => "bg-danger",
+                "Critical" => "bg-dark",
+                _ => "bg-secondary"
+            };
+        }
+
+        <p>
+            <strong>Severity:</strong>
+            <span class="badge @severityClass px-3 py-2" data-testid="severity-status">
+                @Model.SeverityStatus
+            </span>
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.SeverityReason))
+        {
+            <p>
+                <strong>Reason:</strong><br />
+                <span data-testid="severity-reason">@Model.SeverityReason</span>
+            </p>
+        }
+        else
+        {
+            <p class="text-muted">
+                <strong>Reason:</strong> <span data-testid="severity-reason">Not available.</span>
+            </p>
+        }
         <p><strong>Created:</strong> @Model.CreatedAt</p>
-        <p><strong>Description:</strong><br />@Model.Description</p>
+        <p>
+            <strong>Description:</strong><br />
+            <span class="report-text-wrap text-break">@Model.Description</span>
+        </p>
         <p><strong>Location:</strong> (@Model.Latitude, @Model.Longitude)</p>
 
         <div class="mt-3">
@@ -54,6 +88,125 @@
         }
     </div>
 
+    <!-- Admin actions -->
+    @if (User.IsInRole("Admin"))
+    {
+        @if (Model.Status == "Approved")
+        {
+            <div class="mt-3 d-flex align-items-center gap-3">
+                <form asp-action="MarkResolved" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-warning fw-bold">
+                        <i class="fa-solid fa-wrench me-1"></i>
+                        Mark as Resolved
+                    </button>
+                </form>
+                @if (ViewBag.VerifyCount > 0)
+                {
+                    <span class="text-muted">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i>
+                        @ViewBag.VerifyCount community member@(ViewBag.VerifyCount == 1 ? "" : "s") verified this is fixed
+                    </span>
+                }
+            </div>
+        }
+        else if (Model.Status == "Resolved")
+        {
+            <div class="mt-3">
+                <form asp-action="MarkVerifiedFixed" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success fw-bold">
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        Approve as Verified Fixed
+                    </button>
+                </form>
+            </div>
+        }
+    }
+
+    <!-- Community upvote -->
+    <div class="mt-4 d-flex align-items-center gap-3">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <button id="voteBtn"
+                    class="btn @(ViewBag.UserHasVoted ? "btn-primary" : "btn-outline-primary") fw-bold"
+                    data-report-id="@Model.Id"
+                    data-voted="@ViewBag.UserHasVoted.ToString().ToLower()">
+                <i class="fa-solid fa-thumbs-up me-1"></i>
+                I've seen this too
+            </button>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary fw-bold">
+                <i class="fa-solid fa-thumbs-up me-1"></i>
+                I've seen this too
+            </a>
+        }
+        <span class="text-muted">
+            <span id="voteCount">@ViewBag.VoteCount</span>
+            community vote@(ViewBag.VoteCount == 1 ? "" : "s")
+        </span>
+    </div>
+
+    <!-- Community fix verification -->
+    @if (Model.Status == "Approved")
+    {
+        <div class="mt-3 d-flex align-items-center gap-3">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <button id="verifyBtn"
+                        class="btn @(ViewBag.UserHasVerified ? "btn-success" : "btn-outline-success") fw-bold"
+                        data-report-id="@Model.Id">
+                    <i class="fa-solid fa-circle-check me-1"></i>
+                    I've verified this is fixed
+                </button>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success fw-bold">
+                    <i class="fa-solid fa-circle-check me-1"></i>
+                    I've verified this is fixed
+                </a>
+            }
+            <span class="text-muted">
+                <span id="verifyCount">@ViewBag.VerifyCount</span>
+                community verification@(ViewBag.VerifyCount == 1 ? "" : "s")
+            </span>
+        </div>
+    }
+    else if (Model.Status == "Resolved")
+    {
+        <div class="mt-3">
+            <span class="badge bg-success fs-6 px-3 py-2">
+                <i class="fa-solid fa-circle-check me-1"></i> Resolved
+            </span>
+        </div>
+    }
+
+    <!-- Flag report -->
+    <div class="mt-3">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <button id="flagBtn"
+                    data-testid="flag-button"
+                    onclick="window.showFlagModalFromButton?.(this)"
+                    class="btn @(ViewBag.UserHasFlagged ? "btn-secondary" : "btn-outline-danger") fw-bold"
+                    data-report-id="@Model.Id"
+                    @(ViewBag.UserHasFlagged ? "disabled" : "")>
+                <i class="fa-solid fa-flag me-1"></i>
+                @(ViewBag.UserHasFlagged ? "Already Flagged" : "Flag Inappropriate Content")
+            </button>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-danger fw-bold">
+                <i class="fa-solid fa-flag me-1"></i>
+                Flag Inappropriate Content
+            </a>
+        }
+    </div>
+
     <div class="mt-3 d-flex gap-2">
         <a class="btn report-action-btn"
         asp-action="Create"
@@ -81,8 +234,12 @@
 <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;display:none;"></canvas>
 
 @section Scripts {
+    @Html.AntiForgeryToken()
 
     <script src="~/js/reportIssue.js"></script>
+    <script src="~/js/reportVote.js" asp-append-version="true"></script>
+    <script src="~/js/reportVerify.js" asp-append-version="true"></script>
+    <script src="~/js/reportFlag.js" asp-append-version="true"></script>
 
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=@GoogleMaps.Value.ApiKey&callback=initSubmittedMap">

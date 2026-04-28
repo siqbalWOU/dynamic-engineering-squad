@@ -2,16 +2,16 @@
     ViewData["Title"] = "Report Issue";
 }
 
-<div class="container py-4">
+<div class="container py-4" style="max-width: 680px;">
     <div class="text-center mb-4">
-        <h1 class="display-6">Report an Infrastructure Issue</h1>
-        <p class="lead">
+        <h1 class="display-6"><i class="fa-solid fa-triangle-exclamation me-2 text-safety-orange"></i>Report an Infrastructure Issue</h1>
+        <p class="lead text-muted">
             Submit a pothole, broken sign, damaged sidewalk, streetlight issue, or other public hazard.
         </p>
     </div>
 
     <div class="report-card mb-4">
-        <h2 class="h5">How to submit an issue</h2>
+        <h2 class="h5"><i class="fa-solid fa-list-ol me-2"></i>How to submit an issue</h2>
         <ol class="mb-0">
             <li>Click <strong>Report an Issue</strong> below.</li>
             <li>Add a clear description of the issue.</li>
@@ -23,12 +23,15 @@
 
     <div class="row g-3 justify-content-center">
         <div class="col-12 col-md-6">
-            <!-- reporting visible within 5 seconds -->
-            <a class="btn report-action-btn report-action-btn--primary w-100" asp-controller="ReportIssue" asp-action="Create" aria-label="Go to the issue submission form">Report an Issue</a>
+            <a class="btn report-action-btn report-action-btn--primary w-100" asp-controller="ReportIssue" asp-action="Create" aria-label="Go to the issue submission form">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>Report an Issue
+            </a>
         </div>
 
         <div class="col-12 col-md-3">
-            <a class="btn report-action-btn w-100" asp-controller="Home" asp-action="Index" aria-label="Return to the home page">Back to Home</a>
+            <a class="btn report-action-btn w-100" asp-controller="Home" asp-action="Index" aria-label="Return to the home page">
+                <i class="fa-solid fa-arrow-left me-1"></i>Back to Home
+            </a>
         </div>
     </div>
 </div>

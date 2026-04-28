@@ -17,6 +17,7 @@ using NUnit.Framework;
 using System.Threading;
 using InfrastructureApp.Services.ImageHashing;
 using System.Collections.Generic;
+using InfrastructureApp.Services.ImageSeverity;
 
 namespace InfrastructureApp_Tests
 {
@@ -26,6 +27,9 @@ namespace InfrastructureApp_Tests
         private SqliteConnection _conn = null!;
         private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
         private string _webRoot = null!;
+        private IImageModerationService _imageModerationService = null!;
+        private IImageSeverityEstimationService _imageSeverityEstimationService = null!;
+        private IHttpContextAccessor _httpContextAccessor = null!;
 
         [SetUp]
         public void SetUp()
@@ -41,6 +45,24 @@ namespace InfrastructureApp_Tests
             // temp web root for file save tests
             _webRoot = Path.Combine(Path.GetTempPath(), "InfraAppTests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_webRoot);
+
+            //setup for image moderation
+            _imageModerationService = Substitute.For<IImageModerationService>();
+            _imageSeverityEstimationService = Substitute.For<IImageSeverityEstimationService>();
+            _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+
+            _imageModerationService
+                .ModerateImageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(ImageModerationResult.Failed("Test default")));
+
+            _imageSeverityEstimationService
+                .EstimateSeverityAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(SeverityEstimationResult.Failed("Test default")));
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Scheme = "https";
+            httpContext.Request.Host = new HostString("localhost:5001");
+            _httpContextAccessor.HttpContext.Returns(httpContext);
 
             // create schema
             using var db = new ApplicationDbContext(_dbOptions);
@@ -74,50 +96,65 @@ namespace InfrastructureApp_Tests
 
         //makeService now includes description moderation and image hash
         private ReportIssueService MakeService(
-            ApplicationDbContext db,
-            IContentModerationService? moderationOverride = null,
-            IImageHashService? imageHashOverride = null)
+        ApplicationDbContext db,
+        IContentModerationService? moderationOverride = null,
+        IImageHashService? imageHashOverride = null,
+        IImageModerationService? imageModerationOverride = null,
+        IImageSeverityEstimationService? imageSeverityOverride = null,
+        IHttpContextAccessor? httpContextAccessorOverride = null)
+    {
+        var env = Substitute.For<IWebHostEnvironment>();
+        env.WebRootPath.Returns(_webRoot);
+
+        IReportIssueRepository repo = new TestReportIssueRepository(db);
+
+        IContentModerationService moderation;
+        if (moderationOverride != null)
         {
-            var env = Substitute.For<IWebHostEnvironment>();
-            env.WebRootPath.Returns(_webRoot);
-
-            IReportIssueRepository repo = new TestReportIssueRepository(db);
-
-            IContentModerationService moderation;
-            if (moderationOverride != null)
-            {
-                moderation = moderationOverride;
-            }
-            else
-            {
-                moderation = Substitute.For<IContentModerationService>();
-                moderation.CheckAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                    .Returns(Task.FromResult(
-                        new ContentModerationResult(
-                            Performed: true,
-                            IsAllowed: true,
-                            Flagged: false)));
-            }
-
-            IImageHashService imageHash;
-            if (imageHashOverride != null)
-            {
-                imageHash = imageHashOverride;
-            }
-            else
-            {
-                imageHash = Substitute.For<IImageHashService>();
-                imageHash.ComputeHashesAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-                    .Returns(Task.FromResult(new ImageHashResult(
-                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                        123456789L)));
-
-                imageHash.HammingDistance(Arg.Any<long>(), Arg.Any<long>())
-                    .Returns(32);
-            }
-
-            return new ReportIssueService(db, repo, env, moderation, imageHash);
+            moderation = moderationOverride;
         }
+        else
+        {
+            moderation = Substitute.For<IContentModerationService>();
+            moderation.CheckAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(
+                    new ContentModerationResult(
+                        Performed: true,
+                        IsAllowed: true,
+                        Flagged: false)));
+        }
+
+        IImageHashService imageHash;
+        if (imageHashOverride != null)
+        {
+            imageHash = imageHashOverride;
+        }
+        else
+        {
+            imageHash = Substitute.For<IImageHashService>();
+            imageHash.ComputeHashesAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(new ImageHashResult(
+                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    123456789L)));
+
+            imageHash.HammingDistance(Arg.Any<long>(), Arg.Any<long>())
+                .Returns(32);
+        }
+
+        var imageModeration = imageModerationOverride ?? _imageModerationService;
+        var imageSeverity = imageSeverityOverride ?? _imageSeverityEstimationService;
+        var httpContextAccessor = httpContextAccessorOverride ?? _httpContextAccessor;
+
+        return new ReportIssueService(
+            db,
+            repo,
+            env,
+            moderation,
+            imageHash,
+            imageModeration,
+            imageSeverity,
+            httpContextAccessor);
+    }
 
         // -------
         // Tests
@@ -450,7 +487,7 @@ namespace InfrastructureApp_Tests
             imageHash.HammingDistance(Arg.Any<long>(), Arg.Any<long>())
                 .Returns(32);
 
-            var service = new ReportIssueService(db, repo, env, moderation, imageHash);
+            var service = new ReportIssueService(db, repo, env, moderation, imageHash, _imageModerationService, _imageSeverityEstimationService, _httpContextAccessor);
 
             var report = new ReportIssue
             {
@@ -462,6 +499,216 @@ namespace InfrastructureApp_Tests
 
             Assert.That(db.ReportIssue.Any(r => r.UserId == "user-mod"), Is.False);
             Assert.That(db.UserPoints.Any(p => p.UserId == "user-mod"), Is.False);
+        }
+
+        //verifies image moderation passes, severity succeeds, severity field saves
+        [Test]
+        public async Task CreateAsync_WhenImageModerationPasses_AndSeveritySucceeds_SavesSeverityFields()
+        {
+            using var db = NewDb();
+
+            var imageModeration = Substitute.For<IImageModerationService>();
+            imageModeration
+                .ModerateImageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(ImageModerationResult.Passed("Image is valid for analysis")));
+
+            var imageSeverity = Substitute.For<IImageSeverityEstimationService>();
+            imageSeverity
+                .EstimateSeverityAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(
+                    SeverityEstimationResult.Success("High", "Large pothole with deep visible cracking.")));
+
+            var service = MakeService(
+                db,
+                imageModerationOverride: imageModeration,
+                imageSeverityOverride: imageSeverity);
+
+            var report = new ReportIssue
+            {
+                Description = "Road damage near curb",
+                Photo = MakeFormFile(new byte[] { 1, 2, 3, 4, 5 }, "damage.png", "image/png"),
+                Latitude = 44.85m,
+                Longitude = -123.23m
+            };
+
+            var (reportId, status) = await service.CreateAsync(report, "severity-user-1");
+
+            Assert.That(status, Is.EqualTo("Approved"));
+
+            var saved = await db.ReportIssue.SingleAsync(r => r.Id == reportId);
+
+            Assert.That(saved.SeverityStatus, Is.EqualTo("High"));
+            Assert.That(saved.SeverityReason, Is.EqualTo("Large pothole with deep visible cracking."));
+
+            await imageModeration.Received(1)
+                .ModerateImageAsync(Arg.Is<string>(s => s.StartsWith("data:image/png;base64,")), Arg.Any<CancellationToken>());
+
+            await imageSeverity.Received(1)
+                .EstimateSeverityAsync(Arg.Is<string>(s => s.StartsWith("data:image/png;base64,")), Arg.Any<CancellationToken>());
+        }
+
+
+        //tests if image moderation passes but severity estimation fails, severity stays pending
+        [Test]
+        public async Task CreateAsync_WhenSeverityEstimationFails_LeavesSeverityAsPending()
+        {
+            using var db = NewDb();
+
+            var imageModeration = Substitute.For<IImageModerationService>();
+            imageModeration
+                .ModerateImageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(ImageModerationResult.Passed("Image is valid for analysis")));
+
+            var imageSeverity = Substitute.For<IImageSeverityEstimationService>();
+            imageSeverity
+                .EstimateSeverityAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(
+                    SeverityEstimationResult.Failed("Estimator unavailable")));
+
+            var service = MakeService(
+                db,
+                imageModerationOverride: imageModeration,
+                imageSeverityOverride: imageSeverity);
+
+            var report = new ReportIssue
+            {
+                Description = "Crack in sidewalk",
+                Photo = MakeFormFile(new byte[] { 9, 8, 7, 6 }, "sidewalk.png", "image/png"),
+                Latitude = 44.85m,
+                Longitude = -123.23m
+            };
+
+            var (reportId, status) = await service.CreateAsync(report, "severity-user-2");
+
+            Assert.That(status, Is.EqualTo("Approved"));
+
+            var saved = await db.ReportIssue.SingleAsync(r => r.Id == reportId);
+
+            Assert.That(saved.SeverityStatus, Is.EqualTo(ImageSeverityStatuses.Pending));
+            Assert.That(saved.SeverityReason, Is.Null);
+        }
+
+
+        //tests to see if the image moderation fails
+        [Test]
+        public async Task CreateAsync_WhenImageModerationRejects_ThrowsAndDoesNotSaveReportOrPoints()
+        {
+            using var db = NewDb();
+
+            var imageModeration = Substitute.For<IImageModerationService>();
+            imageModeration
+                .ModerateImageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(
+                    ImageModerationResult.Rejected("Inappropriate image content")));
+
+            var imageSeverity = Substitute.For<IImageSeverityEstimationService>();
+
+            var service = MakeService(
+                db,
+                imageModerationOverride: imageModeration,
+                imageSeverityOverride: imageSeverity);
+
+            var report = new ReportIssue
+            {
+                Description = "Uploaded bad image",
+                Photo = MakeFormFile(new byte[] { 1, 1, 1, 1 }, "bad.png", "image/png"),
+                Latitude = 44.85m,
+                Longitude = -123.23m
+            };
+
+            var ex = Assert.ThrowsAsync<ContentModerationRejectedException>(async () =>
+                await service.CreateAsync(report, "severity-user-3"));
+
+            Assert.That(ex!.Message, Does.Contain("uploaded image contains inappropriate content"));
+
+            Assert.That(db.ReportIssue.Any(r => r.UserId == "severity-user-3"), Is.False);
+            Assert.That(db.UserPoints.Any(p => p.UserId == "severity-user-3"), Is.False);
+
+            await imageSeverity.DidNotReceive()
+                .EstimateSeverityAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        }
+
+        //image moderation fails, severity estimation fails, pending status
+        [Test]
+        public async Task CreateAsync_WhenImageModerationFails_SkipsSeverityEstimation_AndLeavesPending()
+        {
+            using var db = NewDb();
+
+            var imageModeration = Substitute.For<IImageModerationService>();
+            imageModeration
+                .ModerateImageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(
+                    ImageModerationResult.Failed("Moderation service unavailable")));
+
+            var imageSeverity = Substitute.For<IImageSeverityEstimationService>();
+
+            var service = MakeService(
+                db,
+                imageModerationOverride: imageModeration,
+                imageSeverityOverride: imageSeverity);
+
+            var report = new ReportIssue
+            {
+                Description = "Damaged sign",
+                Photo = MakeFormFile(new byte[] { 5, 4, 3, 2 }, "sign.png", "image/png"),
+                Latitude = 44.85m,
+                Longitude = -123.23m
+            };
+
+            var (reportId, status) = await service.CreateAsync(report, "severity-user-4");
+
+            Assert.That(status, Is.EqualTo("Approved"));
+
+            var saved = await db.ReportIssue.SingleAsync(r => r.Id == reportId);
+
+            Assert.That(saved.SeverityStatus, Is.EqualTo(ImageSeverityStatuses.Pending));
+            Assert.That(saved.SeverityReason, Is.Null);
+
+            await imageSeverity.DidNotReceive()
+                .EstimateSeverityAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        }
+
+
+        //tests to see the base64 data URL behavior
+        [Test]
+        public async Task CreateAsync_WithJpgPhoto_BuildsJpegBase64DataUrl_ForModerationAndSeverity()
+        {
+            using var db = NewDb();
+
+            string? moderationArg = null;
+            string? severityArg = null;
+
+            var imageModeration = Substitute.For<IImageModerationService>();
+            imageModeration
+                .ModerateImageAsync(Arg.Do<string>(s => moderationArg = s), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(ImageModerationResult.Passed("OK")));
+
+            var imageSeverity = Substitute.For<IImageSeverityEstimationService>();
+            imageSeverity
+                .EstimateSeverityAsync(Arg.Do<string>(s => severityArg = s), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(
+                    SeverityEstimationResult.Success("Low", "Minor visible wear.")));
+
+            var service = MakeService(
+                db,
+                imageModerationOverride: imageModeration,
+                imageSeverityOverride: imageSeverity);
+
+            var report = new ReportIssue
+            {
+                Description = "Minor issue",
+                Photo = MakeFormFile(new byte[] { 10, 20, 30, 40 }, "photo.jpg", "image/jpeg"),
+                Latitude = 44.85m,
+                Longitude = -123.23m
+            };
+
+            await service.CreateAsync(report, "severity-user-5");
+
+            Assert.That(moderationArg, Is.Not.Null);
+            Assert.That(moderationArg, Does.StartWith("data:image/jpeg;base64,"));
+
+            Assert.That(severityArg, Is.Not.Null);
+            Assert.That(severityArg, Does.StartWith("data:image/jpeg;base64,"));
         }
 
 
@@ -533,6 +780,14 @@ namespace InfrastructureApp_Tests
                 }
 
                 return await query.ToListAsync();
+            }
+
+            public async Task<List<ReportIssue>> GetResolvedReportsAsync()
+            {
+                return await _db.ReportIssue
+                    .Where(r => r.Status == "Resolved")
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
             }
         }
     }

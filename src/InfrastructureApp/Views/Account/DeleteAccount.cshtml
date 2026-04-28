@@ -1,0 +1,57 @@
+@model InfrastructureApp.ViewModels.Account.DeleteAccountViewModel
+@{
+    ViewData["Title"] = "Delete Account";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="h4 mb-0">Warning: Irreversible Action</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-danger fw-bold">
+                        Are you sure you want to delete your account? This action cannot be undone.
+                    </p>
+                    <p>
+                        By deleting your account, you will lose:
+                    </p>
+                    <ul>
+                        <li>All your submitted reports and their history.</li>
+                        <li>Your earned points and leaderboard standing.</li>
+                        <li>Your personal profile information and avatar.</li>
+                    </ul>
+                    <p class="text-muted small">
+                        All your personal data will be permanently removed from our systems in accordance with your right to be forgotten.
+                    </p>
+
+                    <hr />
+
+                    <form asp-action="DeleteAccount" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="CurrentPassword" class="form-label"></label>
+                            <input asp-for="CurrentPassword" class="form-control" placeholder="Enter your current password" />
+                            <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger" id="deleteAccountConfirmButton">
+                                Delete My Account Permanently
+                            </button>
+                            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">
+                                Cancel and Return to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

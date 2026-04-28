@@ -25,5 +25,8 @@ namespace InfrastructureApp.Services
         // Latest Report feature 83
         // Retrieves latest reports filtered by keyword and user role (Admin vs non-Admin)
         Task<List<ReportIssue>> SearchLatestReportsAsync(bool isAdmin, string? keyword, string? sort); // SCRUM-86 UPDATED: added sort parameter so search + sort can work together
+
+        // Returns all reports with Status = "Resolved" for the Verify Fixes queue
+        Task<List<ReportIssue>> GetResolvedReportsAsync();
     }
 }

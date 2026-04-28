@@ -1,0 +1,47 @@
+@model InfrastructureApp.ViewModels.VerifyFixViewModel
+
+@{
+    ViewData["Title"] = "Verify Fixes";
+}
+
+<div class="container py-4">
+    <h1 class="h3 mb-1">Verify Fixes</h1>
+    <p class="text-muted mb-4">Confirm repairs made by the city to earn Reputation Points.</p>
+
+    @if (!Model.Reports.Any())
+    {
+        <div class="alert alert-info">
+            No resolved reports are waiting for verification right now. Check back later!
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.Reports)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <p class="card-text text-truncate mb-2">@item.Report.Description</p>
+                            <p class="text-muted small mb-3">
+                                Reported @item.Report.CreatedAt.ToString("MMM d, yyyy")
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="text-muted small">
+                                    <i class="fa-solid fa-circle-check me-1 text-success"></i>
+                                    @item.VerifyCount of 3 verified
+                                </span>
+                                <a asp-controller="ReportIssue"
+                                   asp-action="Details"
+                                   asp-route-id="@item.Report.Id"
+                                   class="btn btn-sm btn-outline-success fw-bold">
+                                    Verify Fix
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

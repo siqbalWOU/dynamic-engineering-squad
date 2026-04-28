@@ -52,6 +52,14 @@ namespace InfrastructureApp.Services
             return await query.ToListAsync();
         }
 
+        public async Task<List<ReportIssue>> GetResolvedReportsAsync()
+        {
+            return await _db.ReportIssue
+                .Where(r => r.Status == "Resolved")
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
         // Originally feature83
         // Returns latest reports filtered by user visibility, search keyword, and sort order
         // SCRUM-86 UPDATED: added sort support using ApplyDateSort helper

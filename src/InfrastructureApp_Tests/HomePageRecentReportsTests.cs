@@ -210,6 +210,11 @@ namespace InfrastructureApp_Tests
             {
                 return Task.FromResult(new List<ReportIssue>());
             }
+
+            public Task<List<ReportIssue>> GetResolvedReportsAsync()
+            {
+                return Task.FromResult(new List<ReportIssue>());
+            }
         }
     }
 }

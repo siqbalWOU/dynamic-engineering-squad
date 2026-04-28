@@ -25,8 +25,7 @@
 
     <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-
-    <form asp-action="Create" asp-controller="ReportIssue" method="post" enctype="multipart/form-data">   <!--enctype is required for photo uploads-->
+    <form asp-action="Create" asp-controller="ReportIssue" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
 
         <input asp-for="CameraId" type="hidden" />

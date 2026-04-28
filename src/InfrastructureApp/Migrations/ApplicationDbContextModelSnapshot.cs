@@ -22,6 +22,77 @@ namespace InfrastructureApp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("InfrastructureApp.Models.ModerationActionLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ModeratorId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ReportIssueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetContentSnapshot")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModeratorId");
+
+                    b.ToTable("ModerationActionLogs");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportFlag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDismissed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ReportIssueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ReportIssueId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ReportFlags");
+                });
+
             modelBuilder.Entity("InfrastructureApp.Models.ReportIssue", b =>
                 {
                     b.Property<int>("Id")
@@ -55,6 +126,15 @@ namespace InfrastructureApp.Migrations
                     b.Property<decimal?>("Longitude")
                         .HasColumnType("decimal(9,6)");
 
+                    b.Property<string>("SeverityReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("SeverityStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -70,6 +150,102 @@ namespace InfrastructureApp.Migrations
                     b.HasIndex("UserId", "ImageSha256");
 
                     b.ToTable("Reports", (string)null);
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportVerification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReportIssueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportIssueId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ReportVerifications");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportVote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReportIssueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportIssueId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ReportVotes");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ShopItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CostPoints")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsSinglePurchase")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ShopItems");
                 });
 
             modelBuilder.Entity("InfrastructureApp.Models.UserPoints", b =>
@@ -105,6 +281,39 @@ namespace InfrastructureApp.Migrations
                         .IsUnique();
 
                     b.ToTable("UserPoints");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.UserShopItemPurchase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CostPoints")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int>("ShopItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShopItemId");
+
+                    b.HasIndex("UserId", "ShopItemId", "PurchasedAt");
+
+                    b.ToTable("UserShopItemPurchases");
                 });
 
             modelBuilder.Entity("InfrastructureApp.Models.Users", b =>
@@ -159,6 +368,18 @@ namespace InfrastructureApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelectedActivitySummaryBackgroundKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelectedActivitySummaryBorderKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelectedDashboardBackgroundKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelectedDashboardBorderKey")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -314,6 +535,47 @@ namespace InfrastructureApp.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("InfrastructureApp.Models.ModerationActionLog", b =>
+                {
+                    b.HasOne("InfrastructureApp.Models.Users", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Moderator");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportFlag", b =>
+                {
+                    b.HasOne("InfrastructureApp.Models.ReportIssue", "ReportIssue")
+                        .WithMany("ReportFlags")
+                        .HasForeignKey("ReportIssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InfrastructureApp.Models.Users", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReportIssue");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.UserShopItemPurchase", b =>
+                {
+                    b.HasOne("InfrastructureApp.Models.ShopItem", "ShopItem")
+                        .WithMany()
+                        .HasForeignKey("ShopItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ShopItem");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -363,6 +625,11 @@ namespace InfrastructureApp.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportIssue", b =>
+                {
+                    b.Navigation("ReportFlags");
                 });
 #pragma warning restore 612, 618
         }

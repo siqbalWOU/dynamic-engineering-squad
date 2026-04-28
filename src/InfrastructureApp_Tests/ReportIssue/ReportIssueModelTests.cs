@@ -219,4 +219,82 @@ public class ReportIssueModelTests
         Assert.That(results, Has.None.Matches<ValidationResult>(r =>
             r.MemberNames.Contains(nameof(ReportIssue.Photo))));
     }
+
+    //test severity status default value
+    [Test]
+    public void SeverityStatus_DefaultValue_IsPending()
+    {
+        var report = new ReportIssue();
+
+        Assert.That(report.SeverityStatus, Is.EqualTo("Pending"));
+    }
+
+    //test severity status too long
+    [Test]
+    public void SeverityStatus_TooLong_Fails()
+    {
+        var report = new ReportIssue
+        {
+            Description = "Valid description",
+            Photo = null,
+            CameraImageUrl = "https://example.com/camera.jpg",
+            Latitude = 0,
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending",
+            SeverityStatus = new string('a', 21) // exceeds MaxLength(20)
+        };
+
+        var results = Validate(report);
+
+        Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
+            r.MemberNames.Contains(nameof(ReportIssue.SeverityStatus))));
+    }
+
+    //test severity reason more than 1000 chars
+    [Test]
+    public void SeverityReason_TooLong_Fails()
+    {
+        var report = new ReportIssue
+        {
+            Description = "Valid description",
+            Photo = null,
+            CameraImageUrl = "https://example.com/camera.jpg",
+            Latitude = 0,
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending",
+            SeverityStatus = "Pending",
+            SeverityReason = new string('a', 1001) // exceeds MaxLength(1000)
+        };
+
+        var results = Validate(report);
+
+        Assert.That(results, Has.Some.Matches<ValidationResult>(r =>
+            r.MemberNames.Contains(nameof(ReportIssue.SeverityReason))));
+    }
+
+    //test severity status passes within max length reason
+    [Test]
+    public void SeverityFields_WithinMaxLength_Pass()
+    {
+        var report = new ReportIssue
+        {
+            Description = "Valid description",
+            Photo = null,
+            CameraImageUrl = "https://example.com/camera.jpg",
+            Latitude = 0,
+            Longitude = 0,
+            UserId = "user-1",
+            Status = "Pending",
+            SeverityStatus = "Moderate",
+            SeverityReason = "AI detected visible road damage with moderate severity."
+        };
+
+        var results = Validate(report);
+
+        Assert.That(results, Has.None.Matches<ValidationResult>(r =>
+            r.MemberNames.Contains(nameof(ReportIssue.SeverityStatus)) ||
+            r.MemberNames.Contains(nameof(ReportIssue.SeverityReason))));
+    }
 }

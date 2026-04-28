@@ -1,0 +1,162 @@
+@model InfrastructureApp.ViewModels.ModerationDashboardViewModel
+@{
+    ViewData["Title"] = "Moderation Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-shield-lock me-2"></i>Moderation Dashboard</h1>
+        <span class="badge bg-secondary">@Model.FlaggedReports.Count Pending Reports</span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.FlaggedReports.Any())
+    {
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-check2-circle display-1 text-success mb-3"></i>
+                <h3>All Clear!</h3>
+                <p class="text-muted">There are no pending flagged posts to review at this time.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shadow-sm rounded">
+            <table class="table table-hover align-middle mb-0 bg-white">
+                <thead class="table-dark text-white">
+                    <tr>
+                        <th>Report Details</th>
+                        <th>Status</th>
+                        <th>Reporter</th>
+                        <th class="text-center">Flags</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in Model.FlaggedReports)
+                    {
+                        <tr>
+                            <td style="max-width: 400px;">
+                                <div class="d-flex align-items-start">
+                                    @if (!string.IsNullOrEmpty(report.ImageUrl))
+                                    {
+                                        <img src="@report.ImageUrl" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="Report image" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center text-muted" style="width: 60px; height: 60px;">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    }
+                                    <div class="overflow-hidden">
+                                        <div class="fw-bold text-truncate">@report.Description</div>
+                                        <div class="small text-muted">Submitted: @report.CreatedAt.ToLocalTime().ToString("g")</div>
+                                        <a asp-controller="ReportIssue" asp-action="Details" asp-route-id="@report.ReportId" class="small text-primary text-decoration-none">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>View Original Content
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark">Review Required</span>
+                            </td>
+                            <td>
+                                <div class="small fw-bold">@report.ReporterName</div>
+                                <div class="small text-muted">ID: @report.ReporterId.Substring(0, 8)...</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-danger">@report.FlagCount</span>
+                                <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                                    @string.Join(", ", report.FlagCategories)
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group shadow-sm">
+                                    <form asp-action="Dismiss" method="post" class="d-inline">
+                                        <input type="hidden" name="reportId" value="@report.ReportId" />
+                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Dismiss Report">
+                                            <i class="bi bi-check-lg me-1"></i>Dismiss
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#confirmRemoveModal" 
+                                            data-report-id="@report.ReportId"
+                                            data-report-desc="@report.Description">
+                                        <i class="bi bi-trash me-1"></i>Remove
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Removal Confirmation Modal -->
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmRemoveModalLabel">Confirm Content Removal</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p>Are you sure you want to <strong>permanently delete</strong> this post?</p>
+                <div class="alert alert-light border mb-0">
+                    <div class="small text-muted text-uppercase fw-bold mb-1">Post Description</div>
+                    <div id="modalReportDesc" class="text-break"></div>
+                </div>
+                <p class="mt-3 text-danger small">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>This action cannot be undone and will remove the post from all public views.
+                </p>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-link text-decoration-none text-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="Remove" method="post">
+                    <input type="hidden" name="reportId" id="modalReportId" value="" />
+                    <button type="submit" class="btn btn-danger px-4" id="confirmRemoveBtn">Remove Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmModal = document.getElementById('confirmRemoveModal');
+            if (confirmModal) {
+                confirmModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const reportId = button.getAttribute('data-report-id');
+                    const reportDesc = button.getAttribute('data-report-desc');
+                    
+                    const idInput = confirmModal.querySelector('#modalReportId');
+                    const descContainer = confirmModal.querySelector('#modalReportDesc');
+                    
+                    idInput.value = reportId;
+                    descContainer.textContent = reportDesc;
+                });
+            }
+        });
+    </script>
+}

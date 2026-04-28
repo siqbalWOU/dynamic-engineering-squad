@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using InfrastructureApp.Services.ImageHashing;
 using Azure.Communication.Email;
 using InfrastructureApp.Services.ReportAssist;
+using InfrastructureApp.Services.ImageSeverity;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +65,7 @@ builder.Services.AddScoped<IEmailService, AzureEmailService>();
 
 builder.Services.AddScoped<ILeaderboardRepository, LeaderboardRepositoryEf>();
 builder.Services.AddScoped<LeaderboardService>();
+builder.Services.AddScoped<IPointsShopService, PointsShopService>();
 
 // Added Repository DI (Dependency Injection) for ReportIssueRepositoryEf
 //dependency injection configuration. They tell the application what concrete classes to use whenever an interface is requested.
@@ -110,6 +112,11 @@ builder.Services.AddScoped<IImageHashService, ImageHashService>();
 //ReportAssist
 builder.Services.AddScoped<IReportDescriptionSuggestionService, ReportDescriptionSuggestionService>();
 
+//Image Severity Service
+builder.Services.AddHttpClient<IImageModerationService, OpenAiImageModerationService>();
+builder.Services.AddHttpClient<IImageSeverityEstimationService, OpenAiImageSeverityEstimationService>();
+
+
 builder.Services.AddScoped<IAvatarService, AvatarService>();
 
 
@@ -129,6 +136,10 @@ else
 
 builder.Services.AddScoped<InfrastructureApp.Services.IAvatarService, InfrastructureApp.Services.AvatarService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IVoteService, VoteService>();
+builder.Services.AddScoped<IVerifyFixService, VerifyFixService>();
+builder.Services.AddScoped<IFlagService, FlagService>();
+builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

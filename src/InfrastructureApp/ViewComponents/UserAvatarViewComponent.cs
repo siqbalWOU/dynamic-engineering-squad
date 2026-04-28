@@ -16,7 +16,7 @@ namespace InfrastructureApp.ViewComponents
 
       public Task<IViewComponentResult> InvokeAsync()
         {
-            return Task.FromResult<IViewComponentResult>(Content("[VC HIT]"));
+            return Task.FromResult<IViewComponentResult>(View("Default"));
         }
     }
 }

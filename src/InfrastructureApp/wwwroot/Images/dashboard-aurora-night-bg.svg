@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="night" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0d1d"/>
+      <stop offset="100%" stop-color="#1a1738"/>
+    </linearGradient>
+    <linearGradient id="aurora" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2ef0ff" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#7aff5f" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#ffd600" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#night)"/>
+  <circle cx="960" cy="110" r="84" fill="#f8fbff" opacity="0.12"/>
+  <path d="M0 240 C180 170 360 310 560 220 S920 130 1200 210" stroke="url(#aurora)" stroke-width="90" fill="none" stroke-linecap="round"/>
+  <path d="M0 500 C240 420 450 560 680 470 S970 360 1200 450 L1200 600 L0 600 Z" fill="#06070c" opacity="0.75"/>
+</svg>

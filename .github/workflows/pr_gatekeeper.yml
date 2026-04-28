@@ -28,8 +28,15 @@ jobs:
         run: dotnet build src/InfrastructureApp_Tests --no-restore
 
       - name: Test
-        run: dotnet test src/InfrastructureApp_Tests --no-build --verbosity normal
+        run: dotnet test src/InfrastructureApp_Tests --logger "trx;LogFileName=test-results.trx" --results-directory ./TestResults
 
+      - name: Upload Test Results
+        if: always() 
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./TestResults/test-results.trx
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

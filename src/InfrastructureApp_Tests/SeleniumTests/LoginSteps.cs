@@ -10,20 +10,13 @@ using InfrastructureApp_Tests.SeleniumTests.Helpers;
 namespace InfrastructureApp_Tests.StepDefinitions
 {
     [Binding]
-    public class LoginSteps : SeleniumTestBase, IDisposable
+    public class LoginSteps : SeleniumTestBase
     {
         private readonly ScenarioContext _scenarioContext;
 
         public LoginSteps(ScenarioContext scenarioContext)
         {
             _scenarioContext = scenarioContext;
-        }
-
-        [BeforeScenario]
-        public async Task BeforeScenario()
-        {
-            await OneTimeSetUp();
-            await SetUpDriver();
         }
 
         [Given(@"a user with username ""(.*)"" and password ""(.*)"" exists")]
@@ -149,13 +142,6 @@ namespace InfrastructureApp_Tests.StepDefinitions
 
         public void Dispose()
         {
-            TearDownDriver();
-        }
-
-        [AfterTestRun]
-        public static async Task AfterTestRun()
-        {
-            await OneTimeTearDownStatic();
         }
     }
 }

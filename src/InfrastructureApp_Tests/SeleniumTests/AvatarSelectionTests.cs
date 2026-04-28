@@ -14,6 +14,8 @@ namespace InfrastructureApp_Tests.SeleniumTests
             Login();
             Driver.Navigate().GoToUrl($"{BaseUrl}/Account/ChooseAvatar");
 
+            //Verifies that page contains "Choose your avatar" and that at least one avatar tile exists
+            //Ensures page renders correctly
             Assert.That(Driver.PageSource, Does.Contain("Choose Your Avatar"));
             Assert.That(Driver.FindElements(By.CssSelector(".avatar-tile")).Count, Is.GreaterThan(0));
         }
@@ -24,6 +26,8 @@ namespace InfrastructureApp_Tests.SeleniumTests
             Login();
             Driver.Navigate().GoToUrl($"{BaseUrl}/Account/ChooseAvatar");
 
+
+            //Clicks first avatar tile
             var firstTile = Driver.FindElement(By.CssSelector(".avatar-tile"));
             firstTile.Click();
 

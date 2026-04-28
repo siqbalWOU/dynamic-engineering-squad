@@ -2,15 +2,60 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    min-height: 70vh;
     padding: 20px;
 }
 
 .account-box {
-    background: #ffffff;
+    background: var(--dark-surface, #363636);
     padding: 40px;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
+    /* Orange accent strip at the top */
+    border-top: 3px solid var(--safety-orange, #FF6600);
+    /* Deep shadow to lift it off the charcoal background */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
     width: 100%;
-    max-width: 450px; 
+    max-width: 450px;
+}
+
+/* Labels */
+.account-box .form-label {
+    color: var(--text-primary, #E8E8E8);
+    font-weight: 500;
+}
+
+/* Submit / action buttons inside the form */
+.account-box .btn-success {
+    background-color: var(--safety-blue, #1B7FD4);
+    border-color: var(--safety-blue, #1B7FD4);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-box .btn-success:hover {
+    background-color: var(--safety-orange, #FF6600);
+    border-color: var(--safety-orange, #FF6600);
+    box-shadow: 0 0 12px rgba(255, 102, 0, 0.4);
+}
+
+/* "Register here" / "Back" links */
+.account-box a {
+    color: var(--safety-blue, #1B7FD4);
+}
+
+.account-box a:hover {
+    color: var(--safety-orange, #FF6600);
+}
+
+/* Validation error text */
+.account-box .text-danger {
+    color: #ff6b6b !important;
+    font-size: 0.85rem;
+}
+
+/* Divider line */
+.account-box hr {
+    border-color: var(--dark-border, #484848);
 }

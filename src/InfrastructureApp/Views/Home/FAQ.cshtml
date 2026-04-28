@@ -1,0 +1,445 @@
+@{
+    ViewData["Title"] = "FAQ";
+}
+
+<div class="container py-5">
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold"><i class="fa-solid fa-circle-question me-2 text-info"></i>Frequently Asked Questions</h1>
+        <p class="lead text-muted">Everything you need to know about PatchNotes</p>
+        <hr class="border-secondary w-50 mx-auto" />
+    </div>
+
+    <!-- Section: General -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-city me-2"></i>General
+    </h2>
+
+    <div class="accordion mb-5" id="accordionGeneral">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-what">
+                    What is PatchNotes?
+                </button>
+            </h3>
+            <div id="faq-what" class="accordion-collapse collapse" data-bs-parent="#accordionGeneral">
+                <div class="accordion-body text-light">
+                    PatchNotes is a community-driven infrastructure reporting platform. It lets residents and
+                    visitors flag real-world problems — potholes, broken streetlights, damaged sidewalks, and
+                    more — so they can be tracked and fixed. It also adds a gamified twist: earn XP and climb
+                    the leaderboard as you help improve your city.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-who">
+                    Who is PatchNotes for?
+                </button>
+            </h3>
+            <div id="faq-who" class="accordion-collapse collapse" data-bs-parent="#accordionGeneral">
+                <div class="accordion-body text-light">
+                    <ul>
+                        <li><strong class="text-white">Residents &amp; visitors</strong> — anyone who spots an infrastructure issue and wants to report it quickly.</li>
+                        <li><strong class="text-white">City staff / Admins</strong> — reviewers who manage submitted reports and update statuses.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-free">
+                    Is PatchNotes free to use?
+                </button>
+            </h3>
+            <div id="faq-free" class="accordion-collapse collapse" data-bs-parent="#accordionGeneral">
+                <div class="accordion-body text-light">
+                    Yes — PatchNotes is completely free. Create an account and start reporting right away.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: Reporting Issues -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-camera me-2"></i>Reporting Issues
+    </h2>
+
+    <div class="accordion mb-5" id="accordionReporting">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-report-how">
+                    How do I report an infrastructure issue?
+                </button>
+            </h3>
+            <div id="faq-report-how" class="accordion-collapse collapse" data-bs-parent="#accordionReporting">
+                <div class="accordion-body text-light">
+                    <ol>
+                        <li>Sign in to your account.</li>
+                        <li>Click <strong class="text-white">Report Issue</strong> in the navigation bar (or hit <em>Start Quest</em> on the home page).</li>
+                        <li>Write a clear description of the problem.</li>
+                        <li>Attach an image.</li>
+                        <li>Pin the location on the map.</li>
+                        <li>Hit <strong class="text-white">Submit</strong> — and collect your XP!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-report-types">
+                    What types of issues can I report?
+                </button>
+            </h3>
+            <div id="faq-report-types" class="accordion-collapse collapse" data-bs-parent="#accordionReporting">
+                <div class="accordion-body text-light">
+                    Anything in the public space that needs attention — for example:
+                    <ul class="mt-2">
+                        <li>Potholes and road damage</li>
+                        <li>Broken or missing street signs</li>
+                        <li>Damaged or blocked sidewalks</li>
+                        <li>Streetlight outages</li>
+                        <li>Other public hazards</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-report-moderation">
+                    Are reports reviewed before going live?
+                </button>
+            </h3>
+            <div id="faq-report-moderation" class="accordion-collapse collapse" data-bs-parent="#accordionReporting">
+                <div class="accordion-body text-light">
+                    Yes. All reports pass through an automated content moderation step to keep the platform safe
+                    and on-topic. Reports that don't meet community guidelines will not be published.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-verify">
+                    What does "Verify Fixes" mean?
+                </button>
+            </h3>
+            <div id="faq-verify" class="accordion-collapse collapse" data-bs-parent="#accordionReporting">
+                <div class="accordion-body text-light">
+                    After the city repairs an issue, community members can confirm the fix is complete. Verifying
+                    a repair earns you <strong class="text-white">Reputation Points</strong>, helping build trust
+                    in your contributions on the leaderboard.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: Maps & Cameras -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-map-pin me-2"></i>Maps &amp; Road Cameras
+    </h2>
+
+    <div class="accordion mb-5" id="accordionMaps">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-nearby">
+                    How does Nearby Issues work?
+                </button>
+            </h3>
+            <div id="faq-nearby" class="accordion-collapse collapse" data-bs-parent="#accordionMaps">
+                <div class="accordion-body text-light">
+                    The <strong class="text-white">Nearby Issues</strong> page uses your device's GPS (or a
+                    location you enter) to show all reported issues within a chosen radius — from 1 to 25 miles.
+                    Results appear on an interactive Google Map so you can see exactly where problems are.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-cameras">
+                    What are Road Cameras?
+                </button>
+            </h3>
+            <div id="faq-cameras" class="accordion-collapse collapse" data-bs-parent="#accordionMaps">
+                <div class="accordion-body text-light">
+                    The <strong class="text-white">Road Cameras</strong> page pulls live feeds from TripCheck's
+                    network of traffic cameras. You can browse cameras by location and view real-time snapshots
+                    to get a ground-level look at road conditions before heading out.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: Gamification -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-trophy me-2"></i>XP, Points &amp; Leaderboard
+    </h2>
+
+    <div class="accordion mb-5" id="accordionGame">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-xp">
+                    How do I earn XP and points?
+                </button>
+            </h3>
+            <div id="faq-xp" class="accordion-collapse collapse" data-bs-parent="#accordionGame">
+                <div class="accordion-body text-light">
+                    Points are awarded for community actions:
+                    <ul class="mt-2">
+                        <li>Submitting a valid issue report</li>
+                        <li>Verifying that a city repair has been completed</li>
+                    </ul>
+                    The more you contribute, the higher you rank.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-leaderboard">
+                    What is the Leaderboard?
+                </button>
+            </h3>
+            <div id="faq-leaderboard" class="accordion-collapse collapse" data-bs-parent="#accordionGame">
+                <div class="accordion-body text-light">
+                    The <strong class="text-white">Leaderboard</strong> ranks all users by their total points.
+                    Check it to see where you stand among fellow Pathfinders and stay motivated to keep
+                    improving your city.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-avatar">
+                    Can I customise my profile?
+                </button>
+            </h3>
+            <div id="faq-avatar" class="accordion-collapse collapse" data-bs-parent="#accordionGame">
+                <div class="accordion-body text-light">
+                    Yes! Logged-in users can visit <strong class="text-white">Choose Avatar</strong> from the
+                    navigation bar to pick a preset avatar or upload their own photo.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: Creating Your Account -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-user-plus me-2"></i>Creating Your Account
+    </h2>
+
+    <div class="accordion mb-5" id="accordionSignup">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-why-account">
+                    Why should I create an account?
+                </button>
+            </h3>
+            <div id="faq-why-account" class="accordion-collapse collapse" data-bs-parent="#accordionSignup">
+                <div class="accordion-body text-light">
+                    Creating a free account unlocks the full PatchNotes experience:
+                    <ul class="mt-2">
+                        <li>Submit infrastructure issue reports</li>
+                        <li>Verify that city repairs have been completed</li>
+                        <li>Earn XP and appear on the community leaderboard</li>
+                        <li>Choose a personal avatar</li>
+                    </ul>
+                    Without an account you can still browse Latest Reports and Nearby Issues, but you won't be able to contribute.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-how-register">
+                    How do I create an account?
+                </button>
+            </h3>
+            <div id="faq-how-register" class="accordion-collapse collapse" data-bs-parent="#accordionSignup">
+                <div class="accordion-body text-light">
+                    <ol>
+                        <li>Click <strong class="text-white">Register</strong> in the top navigation bar.</li>
+                        <li>Enter a username, your email address, and a password.</li>
+                        <li>Re-enter your password in the <strong class="text-white">Confirm Password</strong> field.</li>
+                        <li>Click <strong class="text-white">Register</strong> to submit.</li>
+                    </ol>
+                    Once all fields are valid, your account is created and saved — you're ready to go!
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-password-rules">
+                    What are the password requirements?
+                </button>
+            </h3>
+            <div id="faq-password-rules" class="accordion-collapse collapse" data-bs-parent="#accordionSignup">
+                <div class="accordion-body text-light">
+                    Your password must:
+                    <ul class="mt-2">
+                        <li>Be <strong class="text-white">at least 6 characters</strong> long</li>
+                        <li>Be <strong class="text-white">no more than 40 characters</strong> long</li>
+                    </ul>
+                    There are no special character requirements — just pick something you'll remember and keep it safe.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-password-confirm">
+                    Do my password and confirmation password need to match?
+                </button>
+            </h3>
+            <div id="faq-password-confirm" class="accordion-collapse collapse" data-bs-parent="#accordionSignup">
+                <div class="accordion-body text-light">
+                    Yes. The <strong class="text-white">Password</strong> and <strong class="text-white">Confirm Password</strong>
+                    fields must be identical. This step is there to make sure you haven't made a typo. If they don't match,
+                    you'll see an error message and will need to correct it before continuing.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-validation-fail">
+                    What happens if I fill something in incorrectly?
+                </button>
+            </h3>
+            <div id="faq-validation-fail" class="accordion-collapse collapse" data-bs-parent="#accordionSignup">
+                <div class="accordion-body text-light">
+                    If any field doesn't pass validation — for example, a password that's too short or
+                    passwords that don't match — the form will show a clear error message next to the
+                    problem field. <strong class="text-white">Your account will not be created</strong> until
+                    everything is filled in correctly. Simply fix the highlighted fields and try again.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-account-saved">
+                    How do I know my account was successfully created?
+                </button>
+            </h3>
+            <div id="faq-account-saved" class="accordion-collapse collapse" data-bs-parent="#accordionSignup">
+                <div class="accordion-body text-light">
+                    When registration is successful, you'll be directed to a confirmation step. Once confirmed,
+                    your account is saved and you can log in straight away. Your account information is stored
+                    securely so you can pick up right where you left off on any future visit.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Section: Accounts -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-user me-2"></i>Accounts &amp; Access
+    </h2>
+
+    <div class="accordion mb-5" id="accordionAccounts">
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-register">
+                    Do I need an account to use PatchNotes?
+                </button>
+            </h3>
+            <div id="faq-register" class="accordion-collapse collapse" data-bs-parent="#accordionAccounts">
+                <div class="accordion-body text-light">
+                    You can browse <strong class="text-white">Latest Reports</strong> and <strong class="text-white">Nearby Issues</strong>
+                    without an account. However, submitting reports, verifying fixes, and appearing on the
+                    leaderboard require a free account.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-admin">
+                    What can an Admin do?
+                </button>
+            </h3>
+            <div id="faq-admin" class="accordion-collapse collapse" data-bs-parent="#accordionAccounts">
+                <div class="accordion-body text-light">
+                    Admin users have access to the <strong class="text-white">Admin Panel</strong>, where they
+                    can review all reports (including those not yet public), manage user roles, and oversee the
+                    health of the platform.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq-language">
+                    Is PatchNotes available in other languages?
+                </button>
+            </h3>
+            <div id="faq-language" class="accordion-collapse collapse" data-bs-parent="#accordionAccounts">
+                <div class="accordion-body text-light">
+                    Yes. PatchNotes includes Google Translate integration supporting
+                    <strong class="text-white">English</strong>, <strong class="text-white">Spanish</strong>,
+                    and <strong class="text-white">Chinese (Simplified)</strong>.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Team section -->
+    <div class="card bg-dark border-secondary mt-5">
+        <div class="card-body text-center py-4">
+            <h2 class="h5 fw-bold text-info mb-3"><i class="fa-solid fa-users me-2"></i>Meet the Team</h2>
+            <p class="text-muted mb-3">
+                PatchNotes is built by the <strong class="text-white">Dynamic Engineering Squad</strong> — a
+                team of four developers studying Software Engineering at Western Oregon University.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <span class="badge bg-secondary fs-6 px-3 py-2"><i class="fa-solid fa-code me-1"></i>Julian</span>
+                <span class="badge bg-secondary fs-6 px-3 py-2"><i class="fa-solid fa-code me-1"></i>Sunair</span>
+                <span class="badge bg-secondary fs-6 px-3 py-2"><i class="fa-solid fa-code me-1"></i>Phillip</span>
+                <span class="badge bg-secondary fs-6 px-3 py-2"><i class="fa-solid fa-code me-1"></i>Erin</span>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,124 +1,216 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
 }
 
-<div class="container">
-    <h1 class="mb-3">Privacy Policy</h1>
+<div class="container py-5">
 
-    <p class="text-muted">
-        <strong>Last Updated:</strong> February 6, 2026
-    </p>
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold"><i class="fa-solid fa-shield-halved me-2 text-info"></i>Privacy Policy</h1>
+        <p class="lead text-muted">How PatchNotes collects, uses, and protects your information</p>
+        <hr class="border-secondary w-50 mx-auto" />
+    </div>
 
-    <hr />
+    <!-- Section: About This Policy -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-file-lines me-2"></i>About This Policy
+    </h2>
 
-    <h2>Introduction</h2>
-    <p>
-        This Privacy Policy explains how the PatchNotes infrastructure application (“the application”)
-        collects, uses, stores, and protects user information. This page is intended to clearly
-        describe what data is collected, why it is collected, and what rights users have regarding
-        their personal information.
-    </p>
-    <p>
-        This Privacy Policy is publicly accessible and does not require users to log in to view it.
-    </p>
+    <div class="accordion mb-5" id="accordionAbout">
 
-    <h2>Information We Collect</h2>
-    <p>
-        The application collects only the information necessary to support its core functionality.
-        Depending on how the application is used, collected data may include:
-    </p>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-intro">
+                    What is this Privacy Policy?
+                </button>
+            </h3>
+            <div id="priv-intro" class="accordion-collapse collapse" data-bs-parent="#accordionAbout">
+                <div class="accordion-body text-light">
+                    This Privacy Policy explains how the PatchNotes infrastructure application collects,
+                    uses, stores, and protects user information. It is intended to clearly describe what
+                    data is collected, why it is collected, and what rights users have regarding their
+                    personal information.
+                    <br /><br />
+                    This page is publicly accessible and does not require users to log in to view it.
+                </div>
+            </div>
+        </div>
 
-    <ul>
-        <li>Name or display name</li>
-        <li>Email address</li>
-        <li>User-submitted form data (such as reports or feedback)</li>
-        <li>Basic account information required for authentication</li>
-    </ul>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-updates">
+                    How will I know if this policy changes?
+                </button>
+            </h3>
+            <div id="priv-updates" class="accordion-collapse collapse" data-bs-parent="#accordionAbout">
+                <div class="accordion-body text-light">
+                    This Privacy Policy may be updated periodically to reflect changes in the application
+                    or data handling practices. The <strong class="text-white">Last Updated</strong> date
+                    at the top of this page will reflect the most recent revision.
+                    <br /><br />
+                    Updates may be made without requiring changes to application functionality. Users are
+                    encouraged to review this page periodically to stay informed.
+                </div>
+            </div>
+        </div>
 
-    <p>
-        Data is collected when users register for an account, submit forms, or interact with features
-        that require identification. Some data is required to use core features of the application,
-        while optional fields are clearly identified when applicable.
-    </p>
+    </div>
 
-    <h2>How We Use Your Information</h2>
-    <p>
-        Collected data is used only for legitimate operational purposes related to the application,
-        including:
-    </p>
+    <!-- Section: Your Data -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-database me-2"></i>Your Data
+    </h2>
 
-    <ul>
-        <li>Creating and managing user accounts</li>
-        <li>Authenticating users</li>
-        <li>Displaying submitted information within the application</li>
-        <li>Supporting normal application operations</li>
-        <li>Communicating with users regarding account or submission activity</li>
-    </ul>
+    <div class="accordion mb-5" id="accordionData">
 
-    <p>
-        User data is not used for advertising or marketing purposes.
-    </p>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-collect">
+                    What information do you collect?
+                </button>
+            </h3>
+            <div id="priv-collect" class="accordion-collapse collapse" data-bs-parent="#accordionData">
+                <div class="accordion-body text-light">
+                    The application collects only the information necessary to support its core
+                    functionality. Depending on how the application is used, collected data may include:
+                    <ul class="mt-2">
+                        <li>Name or display name</li>
+                        <li>Email address</li>
+                        <li>User-submitted form data (such as reports or feedback)</li>
+                        <li>Basic account information required for authentication</li>
+                    </ul>
+                    Data is collected when users register for an account, submit forms, or interact with
+                    features that require identification. Some data is required to use core features of
+                    the application, while optional fields are clearly identified when applicable.
+                </div>
+            </div>
+        </div>
 
-    <h2>Data Storage and Security</h2>
-    <p>
-        User data is stored in a secure database used by the application. Data may be hosted using
-        cloud-based infrastructure services to support reliability and availability.
-    </p>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-use">
+                    How is my information used?
+                </button>
+            </h3>
+            <div id="priv-use" class="accordion-collapse collapse" data-bs-parent="#accordionData">
+                <div class="accordion-body text-light">
+                    Collected data is used only for legitimate operational purposes related to the
+                    application, including:
+                    <ul class="mt-2">
+                        <li>Creating and managing user accounts</li>
+                        <li>Authenticating users</li>
+                        <li>Displaying submitted information within the application</li>
+                        <li>Supporting normal application operations</li>
+                        <li>Communicating with users regarding account or submission activity</li>
+                    </ul>
+                    <strong class="text-white">User data is not used for advertising or marketing purposes.</strong>
+                </div>
+            </div>
+        </div>
 
-    <p>
-        Reasonable security practices are used to protect user data, including authentication
-        controls, access restrictions, and secure communication methods. Specific technical
-        implementation details are not publicly disclosed for security reasons.
-    </p>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-storage">
+                    How is my data stored and protected?
+                </button>
+            </h3>
+            <div id="priv-storage" class="accordion-collapse collapse" data-bs-parent="#accordionData">
+                <div class="accordion-body text-light">
+                    User data is stored in a secure database used by the application. Data may be hosted
+                    using cloud-based infrastructure services to support reliability and availability.
+                    <br /><br />
+                    Reasonable security practices are used to protect user data, including authentication
+                    controls, access restrictions, and secure communication methods. Specific technical
+                    implementation details are not publicly disclosed for security reasons.
+                    <br /><br />
+                    User data is retained only for as long as it is necessary to support application
+                    functionality or until a user requests deletion, subject to academic or operational
+                    requirements.
+                </div>
+            </div>
+        </div>
 
-    <p>
-        User data is retained only for as long as it is necessary to support application functionality
-        or until a user requests deletion, subject to academic or operational requirements.
-    </p>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-sharing">
+                    Is my data shared with anyone?
+                </button>
+            </h3>
+            <div id="priv-sharing" class="accordion-collapse collapse" data-bs-parent="#accordionData">
+                <div class="accordion-body text-light">
+                    <strong class="text-white">The application does not sell, rent, or trade user data.</strong>
+                    <br /><br />
+                    User data is not shared with third parties except in limited circumstances, such as
+                    when required to operate core application services or when legally required to do so.
+                    Any third-party services used are limited to infrastructure or hosting support and do
+                    not receive unnecessary personal information.
+                </div>
+            </div>
+        </div>
 
-    <h2>Data Sharing</h2>
-    <p>
-        The application does not sell, rent, or trade user data.
-    </p>
+    </div>
 
-    <p>
-        User data is not shared with third parties except in limited circumstances, such as when
-        required to operate core application services or when legally required to do so. Any third-
-        party services used are limited to infrastructure or hosting support and do not receive
-        unnecessary personal information.
-    </p>
+    <!-- Section: Your Rights -->
+    <h2 class="h5 fw-bold text-uppercase text-info mb-3 mt-5">
+        <i class="fa-solid fa-user-shield me-2"></i>Your Rights
+    </h2>
 
-    <h2>User Rights and Choices</h2>
-    <p>
-        Users have the right to:
-    </p>
+    <div class="accordion mb-5" id="accordionRights">
 
-    <ul>
-        <li>Request access to their personal data</li>
-        <li>Request corrections to inaccurate information</li>
-        <li>Request deletion of their account and associated data, when applicable</li>
-    </ul>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-rights">
+                    What rights do I have over my data?
+                </button>
+            </h3>
+            <div id="priv-rights" class="accordion-collapse collapse" data-bs-parent="#accordionRights">
+                <div class="accordion-body text-light">
+                    Users have the right to:
+                    <ul class="mt-2">
+                        <li>Request access to their personal data</li>
+                        <li>Request corrections to inaccurate information</li>
+                        <li>Request deletion of their account and associated data, when applicable</li>
+                    </ul>
+                    Requests related to privacy or data handling may be submitted using the contact
+                    options provided within the application.
+                </div>
+            </div>
+        </div>
 
-    <p>
-        Requests related to privacy or data handling may be submitted using the contact options
-        provided within the application.
-    </p>
+        <div class="accordion-item bg-dark text-white border-secondary">
+            <h3 class="accordion-header">
+                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#priv-contact">
+                    How do I contact you about a privacy concern?
+                </button>
+            </h3>
+            <div id="priv-contact" class="accordion-collapse collapse" data-bs-parent="#accordionRights">
+                <div class="accordion-body text-light">
+                    For questions or concerns related to privacy, data usage, or this policy, users may
+                    contact the application administrator through the contact options provided within
+                    the application.
+                </div>
+            </div>
+        </div>
 
-    <h2>Policy Updates</h2>
-    <p>
-        This Privacy Policy may be updated periodically to reflect changes in the application or data
-        handling practices. The “Last Updated” date at the top of this page will reflect the most
-        recent revision.
-    </p>
+    </div>
 
-    <p>
-        Updates to this policy may be made without requiring changes to application functionality.
-        Users are encouraged to review this page periodically to stay informed.
-    </p>
+    <!-- Last Updated card -->
+    <div class="card bg-dark border-secondary mt-5">
+        <div class="card-body text-center py-4">
+            <h2 class="h5 fw-bold text-info mb-2"><i class="fa-solid fa-calendar-check me-2"></i>Last Updated</h2>
+            <p class="text-muted mb-0">
+                This policy was last revised on <strong class="text-white">February 6, 2026</strong>.
+                Check back periodically for any updates.
+            </p>
+        </div>
+    </div>
 
-    <h2>Contact Information</h2>
-    <p>
-        For questions or concerns related to privacy, data usage, or this policy, users may contact
-        the application administrator through the contact options provided within the application.
-    </p>
 </div>
