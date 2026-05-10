@@ -1,6 +1,7 @@
 using System.Net;
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
+using InfrastructureApp_Tests.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -56,18 +57,11 @@ namespace InfrastructureApp_Tests.StepDefinitions
         {
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var report = new ReportIssue
-            {
-                Description = description,
-                Status = "Approved",
-                UserId = "test-user-id",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            db.ReportIssue.Add(report);
-            await db.SaveChangesAsync();
-
+            var report = await ReportIssueTestDataHelper.CreateTestReportAsync(
+                db,
+                description,
+                "Approved",
+                "test-user-id");
             _lastReportId = report.Id;
         }
 
@@ -75,6 +69,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public async Task WhenINavigateToThatReportsDetailsPage()
         {
             _response = await _client.GetAsync($"/ReportIssue/Details/{_lastReportId}");
+            TestContext.WriteLine($"GET /ReportIssue/Details/{_lastReportId} => {(int)_response.StatusCode} {_response.StatusCode}");
             _html = await _response.Content.ReadAsStringAsync();
         }
 
@@ -82,6 +77,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public async Task WhenIRequestTheVoteStatusForThatReport()
         {
             _response = await _client.GetAsync($"/Vote/Status/{_lastReportId}");
+            TestContext.WriteLine($"GET /Vote/Status/{_lastReportId} => {(int)_response.StatusCode} {_response.StatusCode}");
             _html = await _response.Content.ReadAsStringAsync();
         }
 
@@ -89,12 +85,14 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public async Task WhenINavigateToTheLatestReportsPage()
         {
             _response = await _client.GetAsync("/Reports/Latest");
+            TestContext.WriteLine($"GET /Reports/Latest => {(int)_response.StatusCode} {_response.StatusCode}");
             _html = await _response.Content.ReadAsStringAsync();
         }
 
         [Then("the voting page should contain {string}")]
         public void ThenTheVotingPageShouldContain(string expectedText)
         {
+            Assert.That(_response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"Unexpected status code before asserting page content. Body: {_html}");
             Assert.That(_html, Does.Contain(expectedText));
         }
 
@@ -107,6 +105,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         [Then("the vote status should contain {string}")]
         public void ThenTheVoteStatusShouldContain(string expectedText)
         {
+            Assert.That(_response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"Unexpected status code before asserting response content. Body: {_html}");
             Assert.That(_html, Does.Contain(expectedText));
         }
 

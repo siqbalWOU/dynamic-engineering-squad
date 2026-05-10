@@ -18,14 +18,18 @@ namespace InfrastructureApp.Controllers
         private readonly IVoteService _voteService;
         private readonly IVerifyFixService _verifyFixService;
         private readonly IFlagService _flagService;
+        private readonly IIssueNameService _issueNameService;
+        private readonly IAuditLogService _auditLogService;
 
-        public ReportIssueController(IReportIssueService service, UserManager<Users> userManager, IVoteService voteService, IVerifyFixService verifyFixService, IFlagService flagService)
+        public ReportIssueController(IReportIssueService service, UserManager<Users> userManager, IVoteService voteService, IVerifyFixService verifyFixService, IFlagService flagService, IIssueNameService issueNameService, IAuditLogService auditLogService)
         {
             _service = service;
             _userManager = userManager;
             _voteService = voteService;
             _verifyFixService = verifyFixService;
             _flagService = flagService;
+            _issueNameService = issueNameService;
+            _auditLogService = auditLogService;
         }
 
         //landing page
@@ -95,6 +99,9 @@ namespace InfrastructureApp.Controllers
             {
                 
                 var (reportId, status) = await _service.CreateAsync(report, userId);
+                await _auditLogService.LogAsync(
+                    $"Report submitted. ReportId={reportId}; Status={status}.",
+                    userId);
 
                 TempData["Success"] = status == "Approved"
                     ? "XP gained! +10 points awarded."
@@ -149,6 +156,9 @@ namespace InfrastructureApp.Controllers
             var found = await _service.UpdateStatusAsync(id, "Verified Fixed");
             if (!found) return NotFound();
 
+            await _auditLogService.LogAsync(
+                $"Report verified fixed by administrator. ReportId={id}; Status=Verified Fixed.",
+                _userManager.GetUserId(User));
             TempData["Success"] = "Report marked as Verified Fixed.";
             return RedirectToAction("Details", new { id });
         }
@@ -173,7 +183,20 @@ namespace InfrastructureApp.Controllers
 
             ViewBag.UserHasFlagged = userId != null && await _flagService.HasUserFlaggedAsync(id, userId);
 
+            ViewBag.NamingThreshold = IssueNameService.NamingThreshold;
+            ViewBag.AvailableNames = IssueNameService.Names;
+
             return View(report);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> NameIssue(int id, string name)
+        {
+            var success = await _issueNameService.AssignNameAsync(id, name);
+            if (!success)
+                TempData["NameError"] = "This issue could not be named. It may already have a name, not have enough votes, or the name chosen was invalid.";
+            return RedirectToAction("Details", new { id });
         }
     }
 }

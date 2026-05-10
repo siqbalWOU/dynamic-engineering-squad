@@ -1,0 +1,102 @@
+@model InfrastructureApp.ViewModels.Minigames.TriviaViewModel
+
+@{
+    ViewData["Title"] = "Infrastructure Trivia";
+}
+
+<link rel="stylesheet" href="~/css/minigames.css" asp-append-version="true" />
+
+<div class="minigame-shell" data-testid="trivia-page">
+    @Html.AntiForgeryToken()
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="mb-1"><i class="fa-solid fa-circle-question me-2 text-warning"></i>Infrastructure Trivia</h1>
+            <p class="text-muted mb-0">One random question at a time. Reach 10 correct answers to claim the 5-point trivia reward for the day.</p>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Current Balance</div>
+                    <div id="triviaCurrentPoints" class="fs-3 fw-bold text-warning">@Model.CurrentPoints</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Correct Answers</div>
+                    <div id="triviaCorrectProgress" class="fs-3 fw-bold text-info">@Model.CorrectAnswers / @Model.CorrectAnswersToWin</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Today's Reward</div>
+                    <div id="triviaDailyProgress" class="fs-3 fw-bold text-success">@Model.DailyPointsEarned / @Model.PointsAvailable</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div id="triviaResult" class="alert @(Model.IsRoundComplete ? "alert-success" : "alert-secondary") mb-4">
+                        @if (Model.HasReachedDailyLimit)
+                        {
+                            <span>You already reached today's trivia reward. Come back tomorrow for another run.</span>
+                        }
+                        else if (Model.IsRoundComplete)
+                        {
+                            <span>You reached 10 correct answers and finished the round.</span>
+                        }
+                        else
+                        {
+                            <span>Answer the current question. Wrong answers do not reveal the solution.</span>
+                        }
+                    </div>
+
+                    <form id="triviaForm"
+                          data-submit-url="@Url.Action("SubmitTrivia", "Minigames")"
+                          data-is-complete="@Model.IsRoundComplete.ToString().ToLowerInvariant()">
+                        <div id="triviaQuestionHost">
+                            @if (Model.CurrentQuestion != null)
+                            {
+                                @await Html.PartialAsync("_TriviaQuestion", Model.CurrentQuestion)
+                            }
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <button id="triviaSubmitButton"
+                                    type="submit"
+                                    class="btn btn-primary"
+                                    @(Model.IsRoundComplete || Model.CurrentQuestion == null ? "disabled" : null)>
+                                Submit Answer
+                            </button>
+                            <button id="triviaMuteButton" type="button" class="btn btn-outline-secondary">Mute Music</button>
+                            <a class="btn btn-outline-light border" href="@Url.Action("Index", "Minigames")">Back to Minigames</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5">How it works</h2>
+                    <ul class="text-muted ps-3 mb-0">
+                        <li>Questions are pulled from a 30-question infrastructure bank.</li>
+                        <li>You see one random question at a time.</li>
+                        <li>Each correct answer moves your progress toward 10 correct answers.</li>
+                        <li>When you hit 10 correct answers, 5 points are rewarded.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/minigames/minigameAudio.js" asp-append-version="true"></script>
+    <script src="~/js/minigames/trivia.js" asp-append-version="true"></script>
+}

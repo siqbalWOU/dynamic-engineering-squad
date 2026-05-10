@@ -1,0 +1,90 @@
+@model InfrastructureApp.ViewModels.Minigames.SlotsViewModel
+
+@{
+    ViewData["Title"] = "Slots";
+}
+
+<link rel="stylesheet" href="~/css/minigames.css" asp-append-version="true" />
+
+<div class="minigame-shell" data-testid="slots-page">
+    @Html.AntiForgeryToken()
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="mb-1"><i class="fa-solid fa-road-barrier me-2 text-warning"></i>Infrastructure Slots</h1>
+            <p class="text-muted mb-0">Spin as many times as you want. Every three matching symbols awards 1 point, up to 5 per day.</p>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Current Balance</div>
+                    <div id="slotsCurrentPoints" class="fs-3 fw-bold text-warning">@Model.CurrentPoints</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Today's Progress</div>
+                    <div id="slotsDailyProgress" class="fs-3 fw-bold text-info">@Model.DailyPointsEarned / @Model.PointsAvailable</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="slots-reels mb-4" aria-live="polite">
+                        <div class="slots-reel" data-slot-reel>?</div>
+                        <div class="slots-reel" data-slot-reel>?</div>
+                        <div class="slots-reel" data-slot-reel>?</div>
+                    </div>
+
+                    <div id="slotsResult" class="alert alert-secondary mb-3">
+                        @if (Model.HasReachedDailyLimit)
+                        {
+                            <span>You reached today's 5-point Slots limit. Come back tomorrow for more points.</span>
+                        }
+                        else
+                        {
+                            <span>Press Spin. Matching all three symbols earns 1 point.</span>
+                        }
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <button id="slotsSpinButton"
+                                type="button"
+                                class="btn btn-primary btn-lg"
+                                data-spin-url="@Url.Action("SpinSlots", "Minigames")"
+                                @(Model.HasReachedDailyLimit ? "disabled" : null)>
+                            Spin
+                        </button>
+                        <button id="slotsMuteButton" type="button" class="btn btn-outline-secondary">
+                            Mute Music
+                        </button>
+                        <a class="btn btn-outline-light border" href="@Url.Action("Index", "Minigames")">
+                            Back to Minigames
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5">How it works</h2>
+                    <ul class="text-muted ps-3 mb-0">
+                        <li>Clicking spin will generate three random symbols.</li>
+                        <li>Only three matching symbols will award a point.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/minigames/minigameAudio.js" asp-append-version="true"></script>
+    <script src="~/js/minigames/slots.js" asp-append-version="true"></script>
+}

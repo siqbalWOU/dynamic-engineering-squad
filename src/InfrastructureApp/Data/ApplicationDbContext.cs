@@ -19,6 +19,8 @@ namespace InfrastructureApp.Data
         //will initialize this property at runtime.
         public DbSet<UserPoints> UserPoints { get; set; } = null!;
 
+        public DbSet<MinigamePlay> MinigamePlays { get; set; } = null!;
+
         public DbSet<ShopItem> ShopItems { get; set; } = null!;
 
         public DbSet<UserShopItemPurchase> UserShopItemPurchases { get; set; } = null!;
@@ -33,6 +35,8 @@ namespace InfrastructureApp.Data
         public DbSet<ReportFlag> ReportFlags { get; set; } = null!;
 
         public DbSet<ModerationActionLog> ModerationActionLogs { get; set; } = null!;
+
+        public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
         //This is the place for constraints, defaults, indexes, and relationships
         protected override void OnModelCreating(ModelBuilder builder)
@@ -71,6 +75,26 @@ namespace InfrastructureApp.Data
             builder.Entity<UserPoints>()
                 .Property(up => up.LastUpdated)
                 .HasDefaultValueSql("SYSUTCDATETIME()");
+
+            builder.Entity<MinigamePlay>(entity =>
+            {
+                entity.Property(play => play.UserId)
+                    .HasMaxLength(450)
+                    .IsRequired();
+
+                entity.Property(play => play.GameKey)
+                    .HasMaxLength(50)
+                    .IsRequired();
+
+                entity.Property(play => play.PlayedOnDate)
+                    .HasColumnType("date");
+
+                entity.Property(play => play.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasIndex(play => new { play.UserId, play.GameKey, play.PlayedOnDate })
+                    .IsUnique();
+            });
 
             builder.Entity<ShopItem>(entity =>
             {
@@ -147,6 +171,11 @@ namespace InfrastructureApp.Data
                     .HasMaxLength(450)
                     .IsRequired();
 
+                entity.HasOne(r => r.User)
+                    .WithMany()
+                    .HasForeignKey(r => r.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
                 entity.Property(r => r.Latitude)
                     .HasColumnType("decimal(9,6)");
 
@@ -182,6 +211,30 @@ namespace InfrastructureApp.Data
             builder.Entity<ReportFlag>()
                 .HasIndex(f => new { f.ReportIssueId, f.UserId })
                 .IsUnique();
+
+            builder.Entity<AuditLog>(entity =>
+            {
+                entity.ToTable("AuditLogs");
+
+                entity.Property(log => log.AspNetUserId)
+                    .HasMaxLength(450);
+
+                entity.Property(log => log.UserName)
+                    .HasMaxLength(256);
+
+                entity.Property(log => log.Email)
+                    .HasMaxLength(256);
+
+                entity.Property(log => log.Role)
+                    .HasMaxLength(256);
+
+                entity.Property(log => log.TimestampUtc)
+                    .IsRequired();
+
+                entity.Property(log => log.Action)
+                    .IsRequired()
+                    .HasMaxLength(1000);
+            });
 
         }
     }

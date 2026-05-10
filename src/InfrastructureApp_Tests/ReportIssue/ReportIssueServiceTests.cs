@@ -84,6 +84,25 @@ namespace InfrastructureApp_Tests
 
         private ApplicationDbContext NewDb() => new ApplicationDbContext(_dbOptions);
 
+        private static async Task AddUserAsync(ApplicationDbContext db, string userId, string? userName = null)
+        {
+            if (await db.Users.AnyAsync(u => u.Id == userId))
+            {
+                return;
+            }
+
+            db.Users.Add(new Users
+            {
+                Id = userId,
+                UserName = userName ?? userId,
+                NormalizedUserName = (userName ?? userId).ToUpperInvariant(),
+                Email = $"{userId}@test.local",
+                NormalizedEmail = $"{userId}@test.local".ToUpperInvariant()
+            });
+
+            await db.SaveChangesAsync();
+        }
+
         private static IFormFile MakeFormFile(byte[] bytes, string fileName, string contentType = "image/png")
         {
             var ms = new MemoryStream(bytes);
@@ -166,6 +185,8 @@ namespace InfrastructureApp_Tests
         {
             using var db = NewDb();
             var service = MakeService(db);
+            var userId = "user-1";
+            await AddUserAsync(db, userId);
 
             var report = new ReportIssue
             {
@@ -174,8 +195,6 @@ namespace InfrastructureApp_Tests
                 Longitude = -123.23m,
                 Photo = null
             };
-
-            var userId = "user-1";
 
             var (reportId, status) = await service.CreateAsync(report, userId);
             Assert.That(status, Is.EqualTo("Approved"));
@@ -200,6 +219,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_ExistingUserPoints_IncrementsBy10()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "user-2");
 
             db.UserPoints.Add(new UserPoints
             {
@@ -233,6 +253,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_WithValidPhoto_SavesFile_SetsImageUrl_AndHashes()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "user-3");
 
             var imageHash = Substitute.For<IImageHashService>();
             imageHash.ComputeHashesAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
@@ -279,6 +300,7 @@ namespace InfrastructureApp_Tests
         public void CreateAsync_ExactDuplicateImageForSameUser_ThrowsDuplicateImageException()
         {
             using var db = NewDb();
+            AddUserAsync(db, "user-dup").GetAwaiter().GetResult();
 
             db.ReportIssue.Add(new ReportIssue
             {
@@ -327,6 +349,7 @@ namespace InfrastructureApp_Tests
         public void CreateAsync_VisuallySimilarImageForSameUser_ThrowsDuplicateImageException()
         {
             using var db = NewDb();
+            AddUserAsync(db, "user-phash").GetAwaiter().GetResult();
 
             db.ReportIssue.Add(new ReportIssue
             {
@@ -375,6 +398,8 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_SameExactImageDifferentUser_IsAllowed()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "user-a");
+            await AddUserAsync(db, "user-b");
 
             db.ReportIssue.Add(new ReportIssue
             {
@@ -423,6 +448,7 @@ namespace InfrastructureApp_Tests
         public void CreateAsync_InvalidExtension_Throws_AndDoesNotCreatePointsOrReport()
         {
             using var db = NewDb();
+            AddUserAsync(db, "user-4").GetAwaiter().GetResult();
             var service = MakeService(db);
 
             var report = new ReportIssue
@@ -446,6 +472,7 @@ namespace InfrastructureApp_Tests
         public void CreateAsync_Over5MB_Throws_AndDoesNotCreatePointsOrReport()
         {
             using var db = NewDb();
+            AddUserAsync(db, "user-5").GetAwaiter().GetResult();
             var service = MakeService(db);
 
             var big = new byte[5 * 1024 * 1024 + 1]; // 5MB + 1
@@ -469,6 +496,7 @@ namespace InfrastructureApp_Tests
         public void CreateAsync_WhenModerationRejects_ThrowsAndDoesNotSaveReportOrPoints()
         {
             using var db = NewDb();
+            AddUserAsync(db, "user-mod").GetAwaiter().GetResult();
 
             var env = Substitute.For<IWebHostEnvironment>();
             env.WebRootPath.Returns(_webRoot);
@@ -506,6 +534,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_WhenImageModerationPasses_AndSeveritySucceeds_SavesSeverityFields()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "severity-user-1");
 
             var imageModeration = Substitute.For<IImageModerationService>();
             imageModeration
@@ -553,6 +582,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_WhenSeverityEstimationFails_LeavesSeverityAsPending()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "severity-user-2");
 
             var imageModeration = Substitute.For<IImageModerationService>();
             imageModeration
@@ -594,6 +624,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_WhenImageModerationRejects_ThrowsAndDoesNotSaveReportOrPoints()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "severity-user-3");
 
             var imageModeration = Substitute.For<IImageModerationService>();
             imageModeration
@@ -633,6 +664,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_WhenImageModerationFails_SkipsSeverityEstimation_AndLeavesPending()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "severity-user-4");
 
             var imageModeration = Substitute.For<IImageModerationService>();
             imageModeration
@@ -674,6 +706,7 @@ namespace InfrastructureApp_Tests
         public async Task CreateAsync_WithJpgPhoto_BuildsJpegBase64DataUrl_ForModerationAndSeverity()
         {
             using var db = NewDb();
+            await AddUserAsync(db, "severity-user-5");
 
             string? moderationArg = null;
             string? severityArg = null;
@@ -728,7 +761,7 @@ namespace InfrastructureApp_Tests
             public TestReportIssueRepository(ApplicationDbContext db) => _db = db;
 
             public Task<ReportIssue?> GetByIdAsync(int id)
-                => _db.ReportIssue.FirstOrDefaultAsync(r => r.Id == id);
+                => _db.ReportIssue.Include(r => r.User).FirstOrDefaultAsync(r => r.Id == id);
 
             public Task AddAsync(ReportIssue report)
                 => _db.ReportIssue.AddAsync(report).AsTask();

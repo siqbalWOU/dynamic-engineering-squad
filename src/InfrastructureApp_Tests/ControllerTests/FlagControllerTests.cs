@@ -15,6 +15,7 @@ namespace InfrastructureApp_Tests.Controllers
     public class FlagControllerTests
     {
         private IFlagService _flagService = null!;
+        private IAuditLogService _auditLogService = null!;
         private UserManager<Users> _userManager = null!;
         private FlagController _controller = null!;
 
@@ -22,8 +23,9 @@ namespace InfrastructureApp_Tests.Controllers
         public void SetUp()
         {
             _flagService = Substitute.For<IFlagService>();
+            _auditLogService = Substitute.For<IAuditLogService>();
             _userManager = CreateUserManagerSubstitute();
-            _controller = new FlagController(_flagService, _userManager);
+            _controller = new FlagController(_flagService, _userManager, _auditLogService);
 
             var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {

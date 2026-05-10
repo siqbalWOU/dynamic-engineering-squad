@@ -83,4 +83,15 @@ public class AuthorizationIntegrationTests
         Assert.That(response.StatusCode,
             Is.EqualTo(HttpStatusCode.Forbidden));
     }
+
+    [Test]
+    public async Task AuditLogs_AccessedByUser_ReturnsForbidden()
+    {
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("TestRole", "User");
+
+        var response = await _client.GetAsync("/AuditLogs");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
 }

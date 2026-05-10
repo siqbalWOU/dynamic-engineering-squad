@@ -128,8 +128,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("submit", function (e) {
 
-        const lat = document.getElementById("Latitude").value;
-        const lng = document.getElementById("Longitude").value;
+        const latEl = document.getElementById("Latitude");
+        const lngEl = document.getElementById("Longitude");
+        if (!latEl || !lngEl) return;
+
+        const lat = latEl.value;
+        const lng = lngEl.value;
 
         if (shouldBlockSubmit(lat, lng)) {
             e.preventDefault();

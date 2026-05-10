@@ -94,6 +94,27 @@ namespace InfrastructureApp.Services
             };
         }
 
+        // SCRUM-143: Converts a user's submitted report count into a simple activity progress label.
+        private static string BuildReportActivityProgressLabel(int reportsSubmitted)
+        {
+            if (reportsSubmitted == 0)
+            {
+                return "New Reporter";
+            }
+
+            if (reportsSubmitted < 10)
+            {
+                return "Getting Started";
+            }
+
+            if (reportsSubmitted < 25)
+            {
+                return "Active Reporter";
+            }
+
+            return "Community Contributor";
+        }
+
         // Builds dashboard values using database data
         private async Task<DashboardViewModel> BuildDashboardForUserAsync(Users user)
         {
@@ -101,6 +122,33 @@ namespace InfrastructureApp.Services
             var reportsSubmitted = await _db.ReportIssue
                 .AsNoTracking()
                 .CountAsync(r => r.UserId == user.Id);
+
+            // SCRUM-142: Count this logged-in user's reports by status for the Activity Summary.
+            var reportStatusSummary = await _db.ReportIssue
+                .AsNoTracking()
+                .Where(r => r.UserId == user.Id)
+                .GroupBy(r => r.Status)
+                .Select(group => new DashboardReportStatusSummaryViewModel
+                {
+                    Status = group.Key,
+                    Count = group.Count()
+                })
+                .OrderBy(summary => summary.Status)
+                .ToListAsync();
+
+            // SCRUM-137: Load only this logged-in user's submitted reports for the private Dashboard.
+            var submittedReports = await _db.ReportIssue
+                .AsNoTracking()
+                .Where(r => r.UserId == user.Id)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new DashboardSubmittedReportViewModel
+                {
+                    Id = r.Id,
+                    Description = r.Description,
+                    Status = r.Status,
+                    CreatedDate = r.CreatedAt
+                })
+                .ToListAsync();
 
             // Get user points (if they exist)
             var pointsRow = await _db.UserPoints
@@ -121,6 +169,10 @@ namespace InfrastructureApp.Services
                 Username = user.UserName ?? "DemoUser",
                 Email = user.Email ?? "demo@example.com",
                 ReportsSubmitted = reportsSubmitted,
+                ReportStatusSummary = reportStatusSummary,
+                // SCRUM-143: Show the user's private activity progress based on their submitted report count.
+                ReportActivityProgressLabel = BuildReportActivityProgressLabel(reportsSubmitted),
+                SubmittedReports = submittedReports,
                 Points = pointsRow?.CurrentPoints ?? 0,
                 AvatarKey = user.AvatarKey,
                 AvatarUrl = user.AvatarUrl,

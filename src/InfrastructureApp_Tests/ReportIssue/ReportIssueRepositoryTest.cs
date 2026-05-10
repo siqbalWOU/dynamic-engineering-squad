@@ -42,12 +42,27 @@ namespace InfrastructureApp_Tests.Repositories
         private ApplicationDbContext NewDb()
             => new ApplicationDbContext(_dbOptions);
 
+        private static async Task AddUserAsync(ApplicationDbContext db, string userId, string userName)
+        {
+            db.Users.Add(new Users
+            {
+                Id = userId,
+                UserName = userName,
+                NormalizedUserName = userName.ToUpperInvariant(),
+                Email = $"{userId}@test.local",
+                NormalizedEmail = $"{userId}@test.local".ToUpperInvariant()
+            });
+
+            await db.SaveChangesAsync();
+        }
+
         //tests SQL and EF
         [Test]
         public async Task AddAsync_PersistsReport_AndGetByIdAsync_ReturnsIt()
         {
             using var db = NewDb();
             var repo = new ReportIssueRepositoryEf(db);
+            await AddUserAsync(db, "user-123", "reporter123");
 
             var report = new ReportIssue
             {
@@ -77,6 +92,8 @@ namespace InfrastructureApp_Tests.Repositories
             Assert.That(fetched!.Id, Is.EqualTo(savedId));
             Assert.That(fetched.Description, Is.EqualTo("Broken curb"));
             Assert.That(fetched.UserId, Is.EqualTo("user-123"));
+            Assert.That(fetched.User, Is.Not.Null);
+            Assert.That(fetched.User!.UserName, Is.EqualTo("reporter123"));
             Assert.That(fetched.Status, Is.EqualTo("Approved"));
             Assert.That(fetched.ImageUrl, Is.EqualTo("/uploads/issues/test.png"));
             Assert.That(fetched.ImageSha256,

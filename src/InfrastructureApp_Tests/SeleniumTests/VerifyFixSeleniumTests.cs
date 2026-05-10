@@ -1,5 +1,6 @@
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
+using InfrastructureApp_Tests.Helpers;
 using InfrastructureApp_Tests.SeleniumTests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -24,17 +25,11 @@ namespace InfrastructureApp_Tests.SeleniumTests
         {
             using var scope = ServerHost!.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var report = new ReportIssue
-            {
-                Description = description,
-                Status = status,
-                UserId = "selenium-test-user",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            db.ReportIssue.Add(report);
-            await db.SaveChangesAsync();
+            var report = await ReportIssueTestDataHelper.CreateTestReportAsync(
+                db,
+                description,
+                status,
+                "selenium-test-user");
             return report.Id;
         }
 

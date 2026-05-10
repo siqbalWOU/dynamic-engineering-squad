@@ -1,5 +1,6 @@
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
+using InfrastructureApp_Tests.Helpers;
 using InfrastructureApp_Tests.SeleniumTests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -17,24 +18,18 @@ namespace InfrastructureApp_Tests.SeleniumTests
         {
             using var scope = ServerHost!.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            db.ReportIssue.AddRange(
-                new ReportIssue
-                {
-                    Description = "Selenium expand collapse pothole report",
-                    Status = "Approved",
-                    CreatedAt = DateTime.UtcNow.AddMinutes(-1),
-                    UserId = "selenium-expand-user-1"
-                },
-                new ReportIssue
-                {
-                    Description = "Selenium expand collapse streetlight report",
-                    Status = "Approved",
-                    CreatedAt = DateTime.UtcNow,
-                    UserId = "selenium-expand-user-2"
-                });
-
-            await db.SaveChangesAsync();
+            await ReportIssueTestDataHelper.CreateTestReportAsync(
+                db,
+                "Selenium expand collapse pothole report",
+                "Approved",
+                "selenium-expand-user-1",
+                DateTime.UtcNow.AddMinutes(-1));
+            await ReportIssueTestDataHelper.CreateTestReportAsync(
+                db,
+                "Selenium expand collapse streetlight report",
+                "Approved",
+                "selenium-expand-user-2",
+                DateTime.UtcNow);
         }
 
         // SCRUM-128:

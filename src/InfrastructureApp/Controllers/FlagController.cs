@@ -12,11 +12,13 @@ namespace InfrastructureApp.Controllers
     {
         private readonly IFlagService _flagService;
         private readonly UserManager<Users> _userManager;
+        private readonly IAuditLogService _auditLogService;
 
-        public FlagController(IFlagService flagService, UserManager<Users> userManager)
+        public FlagController(IFlagService flagService, UserManager<Users> userManager, IAuditLogService auditLogService)
         {
             _flagService = flagService;
             _userManager = userManager;
+            _auditLogService = auditLogService;
         }
 
         [HttpPost]
@@ -29,6 +31,12 @@ namespace InfrastructureApp.Controllers
             }
 
             var (success, message) = await _flagService.FlagReportAsync(reportId, userId, category);
+            if (success)
+            {
+                await _auditLogService.LogAsync(
+                    $"Issue flagged. ReportId={reportId}; Category={category}.",
+                    userId);
+            }
             return Json(new { success, message });
         }
 

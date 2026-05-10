@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Traffic cone</title>
+  <rect width="160" height="160" rx="28" fill="#eef2f6"/>
+  <rect x="35" y="116" width="90" height="16" rx="8" fill="#495057"/>
+  <path d="M80 28 112 116H48L80 28Z" fill="#f97316"/>
+  <rect x="58" y="64" width="44" height="10" rx="5" fill="#fff7ed"/>
+  <rect x="52" y="84" width="56" height="10" rx="5" fill="#fff7ed"/>
+</svg>

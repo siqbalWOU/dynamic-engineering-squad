@@ -17,15 +17,17 @@ namespace InfrastructureApp.Controllers
         private readonly IUserService _userService;
         private readonly IAvatarService _avatarService;
         private readonly IEmailService _emailService;
+        private readonly IAuditLogService _auditLogService;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(UserManager<Users> userManager, SignInManager<Users> signInManager, IAvatarService avatarService, IUserService userService, IEmailService emailService, ILogger<AccountController> logger)
+        public AccountController(UserManager<Users> userManager, SignInManager<Users> signInManager, IAvatarService avatarService, IUserService userService, IEmailService emailService, IAuditLogService auditLogService, ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _avatarService = avatarService;
             _userService = userService;
             _emailService = emailService;
+            _auditLogService = auditLogService;
             _logger = logger;
         }
 
@@ -42,16 +44,25 @@ namespace InfrastructureApp.Controllers
             {
                 return View(model);
             }
+
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null && user.IsBanned)
+            {
+                ModelState.AddModelError(string.Empty, "Account Suspended");
+                return View(model);
+            }
+
             var result = await _signInManager
                 .PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
+
             if (result.Succeeded)
             {
+                await _auditLogService.LogAsync("User login succeeded.", user?.Id);
                 return RedirectToAction("Index", "Home");
             }
 
             if (result.IsNotAllowed)
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
                 if (user != null && !await _userManager.IsEmailConfirmedAsync(user))
                 {
                     ModelState.AddModelError(string.Empty, "You must confirm your email before logging in.");
@@ -98,6 +109,8 @@ namespace InfrastructureApp.Controllers
 
                 await _emailService.SendEmailAsync(model.Email, "Confirm your email",
                     $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>.");
+
+                await _auditLogService.LogAsync("User registration completed.", user.Id);
 
                 return RedirectToAction("RegisterConfirmation", new { email = model.Email });
             }
@@ -168,10 +181,11 @@ namespace InfrastructureApp.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Admin(int page = 1)
+        public async Task<IActionResult> Admin(string? searchTerm, int page = 1)
         {
             var pageSize = 10;
-            var model = await _userService.GetUsersWithRolesAsync(page, pageSize);
+            var model = await _userService.GetUsersWithRolesAsync(page, pageSize, searchTerm);
+            ViewBag.SearchTerm = searchTerm;
             return View(model);
         }
         
@@ -194,7 +208,10 @@ namespace InfrastructureApp.Controllers
             string currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _userService.UpdateUserRolesAsync(model, currentAdminId);
         
-            if (result.Succeeded) return RedirectToAction("Admin");
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Admin");
+            }
 
             foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
             return View(model);
@@ -341,6 +358,48 @@ namespace InfrastructureApp.Controllers
             TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
             return RedirectToAction("Admin");
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BanUser(string userId, string reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["ErrorMessage"] = "A reason for the ban is required.";
+                return RedirectToAction("Admin");
+            }
+
+            string currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _userService.BanUserAsync(userId, currentAdminId, reason);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "User banned successfully.";
+                return RedirectToAction("Admin");
+            }
+
+            TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            return RedirectToAction("Admin");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnbanUser(string userId)
+        {
+            string currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _userService.UnbanUserAsync(userId, currentAdminId);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "User unbanned successfully.";
+                return RedirectToAction("Admin");
+            }
+
+            TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            return RedirectToAction("Admin");
+        }
         
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -383,6 +442,11 @@ namespace InfrastructureApp.Controllers
             {
                 return View(_avatarService.BuildChooseAvatarViewModel(user, vm.SelectedAvatarKey, result.ErrorMessage));
             }
+
+            var avatarAction = vm.UseUploadedImage
+                ? "Avatar changed to uploaded image."
+                : $"Avatar changed to preset '{vm.SelectedAvatarKey ?? "unknown"}'.";
+            await _auditLogService.LogAsync(avatarAction, user.Id);
 
             await _signInManager.RefreshSignInAsync(user);
             return RedirectToAction("Index", "Home");

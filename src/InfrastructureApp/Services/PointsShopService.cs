@@ -11,10 +11,12 @@ namespace InfrastructureApp.Services
     public class PointsShopService : IPointsShopService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IAuditLogService _auditLogService;
 
-        public PointsShopService(ApplicationDbContext db)
+        public PointsShopService(ApplicationDbContext db, IAuditLogService auditLogService)
         {
             _db = db;
+            _auditLogService = auditLogService;
         }
 
         public async Task<PointsShopSnapshot> GetShopAsync(string userId)
@@ -156,6 +158,10 @@ namespace InfrastructureApp.Services
 
                 await _db.SaveChangesAsync();
                 await tx.CommitAsync();
+
+                await _auditLogService.LogAsync(
+                    $"Points shop purchase completed. ItemName={item.Name}; CostPoints={item.CostPoints}.",
+                    userId);
 
                 return PointsShopPurchaseResult.Success(
                     $"Purchased {item.Name} for {item.CostPoints} points.",

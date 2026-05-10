@@ -1,0 +1,104 @@
+@model InfrastructureApp.ViewModels.Minigames.TapRepairViewModel
+
+@{
+    ViewData["Title"] = "Tap Repair";
+}
+
+<link rel="stylesheet" href="~/css/minigames.css" asp-append-version="true" />
+
+<div class="minigame-shell" data-testid="tap-repair-page">
+    @Html.AntiForgeryToken()
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="mb-1"><i class="fa-solid fa-hammer me-2 text-warning"></i>Tap Repair</h1>
+            <p class="text-muted mb-0">Start the timer, tap potholes as they appear, and finish each round to earn 1 point, up to 5 points per day.</p>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Current Balance</div>
+                    <div id="tapRepairCurrentPoints" class="fs-3 fw-bold text-warning">@Model.CurrentPoints</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Today's Reward</div>
+                    <div id="tapRepairDailyProgress" class="fs-3 fw-bold text-info">@Model.DailyPointsEarned / @Model.PointsAvailable</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Round Timer</div>
+                    <div id="tapRepairTimer" class="fs-3 fw-bold text-danger">20s</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div id="tapRepairResult" class="alert @(Model.HasReachedDailyLimit ? "alert-warning" : "alert-secondary") mb-3">
+                        @if (Model.HasReachedDailyLimit)
+                        {
+                            <span>You already reached today's 5-point Tap Repair limit. You can still play for practice.</span>
+                        }
+                        else
+                        {
+                            <span>Press start, survive the faster pothole rush, and clear rounds for 1 point each.</span>
+                        }
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button id="tapRepairStartButton" type="button" class="btn btn-primary">Start Repair Run</button>
+                        <button id="tapRepairMuteButton" type="button" class="btn btn-outline-secondary">Mute Music</button>
+                        <a class="btn btn-outline-light border" href="@Url.Action("Index", "Minigames")">Back to Minigames</a>
+                    </div>
+
+                    <div class="tap-repair-stats mb-3">
+                        <div class="tap-repair-stat">
+                            <span class="text-muted text-uppercase small d-block">Repairs This Round</span>
+                            <strong id="tapRepairScore" class="fs-4">0</strong>
+                        </div>
+                        <div class="tap-repair-stat">
+                            <span class="text-muted text-uppercase small d-block">Status</span>
+                            <strong id="tapRepairStatus" class="fs-6">Waiting to start</strong>
+                        </div>
+                    </div>
+
+                    <div id="tapRepairArena"
+                         class="tap-repair-arena"
+                         data-complete-url="@Url.Action("CompleteGame", "Minigames")"
+                         data-game-key="tap-repair"
+                         data-duration-seconds="18">
+                        <div class="tap-repair-overlay">
+                            <div class="tap-repair-overlay-title">Repair Crew Ready</div>
+                            <div class="text-muted">Start the round to begin spawning potholes.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5">How it works</h2>
+                    <ul class="text-muted ps-3 mb-0">
+                        <li>Potholes spawn quickly around the play area for 18 seconds.</li>
+                        <li>Tapping a pothole repairs it and increases your round count.</li>
+                        <li>The tap count is only for feedback. It does not change the reward.</li>
+                        <li>When the round ends, 1 point is awarded.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/minigames/minigameAudio.js" asp-append-version="true"></script>
+    <script src="~/js/minigames/tapRepair.js" asp-append-version="true"></script>
+}

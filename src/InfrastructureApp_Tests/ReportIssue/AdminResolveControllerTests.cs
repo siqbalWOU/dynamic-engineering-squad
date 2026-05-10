@@ -36,7 +36,9 @@ namespace InfrastructureApp_Tests
 
             var flagService = Substitute.For<IFlagService>();
 
-            _controller = new ReportIssueController(_service, userManager, voteService, verifyService, flagService)
+            var issueNameService = Substitute.For<IIssueNameService>();
+            var auditLogService = Substitute.For<IAuditLogService>();
+            _controller = new ReportIssueController(_service, userManager, voteService, verifyService, flagService, issueNameService, auditLogService)
             {
                 ControllerContext = new ControllerContext
                 {

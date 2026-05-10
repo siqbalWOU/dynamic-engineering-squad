@@ -15,6 +15,10 @@ namespace InfrastructureApp.Models
         public string? SelectedActivitySummaryBorderKey { get; set; }
         public List<string>? Roles { get; set; }
 
+        public bool IsBanned { get; set; }
+        public string? BanReason { get; set; }
+
+
         
     }
 }

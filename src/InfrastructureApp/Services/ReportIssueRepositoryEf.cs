@@ -20,7 +20,9 @@ namespace InfrastructureApp.Services
         //queries the reports table and returns report if found
         public Task<ReportIssue?> GetByIdAsync(int id)
         {
-            return _db.ReportIssue.FirstOrDefaultAsync(r => r.Id == id);
+            return _db.ReportIssue
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
 
         //adds a new report report to EF's change tracker

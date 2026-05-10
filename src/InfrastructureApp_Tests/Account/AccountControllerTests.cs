@@ -21,6 +21,7 @@ public class AccountControllerTests
     private Mock<IAvatarService> _mockAvatarService;
     private Mock<IUserService> _mockUserService;
     private Mock<IEmailService> _mockEmailService;
+    private Mock<IAuditLogService> _mockAuditLogService;
     private Mock<ILogger<AccountController>> _mockLogger;
     private Mock<IUrlHelper> _mockUrlHelper;
     private AccountController _controller;
@@ -42,6 +43,7 @@ public class AccountControllerTests
         _mockAvatarService = new Mock<IAvatarService>();
         _mockUserService = new Mock<IUserService>();
         _mockEmailService = new Mock<IEmailService>();
+        _mockAuditLogService = new Mock<IAuditLogService>();
         _mockLogger = new Mock<ILogger<AccountController>>();
         _mockUrlHelper = new Mock<IUrlHelper>();
         
@@ -51,6 +53,7 @@ public class AccountControllerTests
             _mockAvatarService.Object, 
             _mockUserService.Object,
             _mockEmailService.Object,
+            _mockAuditLogService.Object,
             _mockLogger.Object);
             
         var httpContext = new DefaultHttpContext();
