@@ -44,11 +44,34 @@ namespace InfrastructureApp.Services
             return dashboard;
         }
 
-        // Returns public profile data for a user looked up by username
-        public async Task<DashboardViewModel?> GetPublicProfileAsync(string username)
+        // Returns public profile data for a user looked up by username, with paginated approved reports.
+        public async Task<DashboardViewModel?> GetPublicProfileAsync(string username, int page = 1)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return null;
+
+            const int pageSize = 10;
+            var safePage = Math.Max(1, page);
+
+            var totalApproved = await _db.ReportIssue
+                .AsNoTracking()
+                .CountAsync(r => r.UserId == user.Id && r.Status == "Approved");
+
+            var publicReports = await _db.ReportIssue
+                .AsNoTracking()
+                .Where(r => r.UserId == user.Id && r.Status == "Approved")
+                .OrderByDescending(r => r.CreatedAt)
+                .Skip((safePage - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new PublicProfileReportViewModel
+                {
+                    Id = r.Id,
+                    Title = (r.IssueName != null && r.IssueName.Length > 0) ? r.IssueName : r.Description,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToListAsync();
+
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalApproved / (double)pageSize));
 
             var reportsSubmitted = await _db.ReportIssue
                 .AsNoTracking()
@@ -65,20 +88,23 @@ namespace InfrastructureApp.Services
 
             return new DashboardViewModel
             {
-                Username         = user.UserName ?? username,
-                Email            = "",   // not exposed on public profile
-                ReportsSubmitted = reportsSubmitted,
-                Points           = pointsRow?.CurrentPoints ?? 0,
-                AvatarKey        = user.AvatarKey,
-                AvatarUrl        = user.AvatarUrl,
-                SelectedDashboardBackgroundKey = selectedBackground?.Key,
-                PersonalInfoBackgroundUrl = selectedBackground?.ImageUrl,
+                Username              = user.UserName ?? username,
+                Email                 = "",   // not exposed on public profile
+                ReportsSubmitted      = reportsSubmitted,
+                Points                = pointsRow?.CurrentPoints ?? 0,
+                AvatarKey             = user.AvatarKey,
+                AvatarUrl             = user.AvatarUrl,
+                PublicProfileReports  = publicReports,
+                CurrentPage           = safePage,
+                TotalPages            = totalPages,
+                SelectedDashboardBackgroundKey       = selectedBackground?.Key,
+                PersonalInfoBackgroundUrl            = selectedBackground?.ImageUrl,
                 SelectedActivitySummaryBackgroundKey = selectedActivitySummaryBackground?.Key,
-                ActivitySummaryBackgroundUrl = selectedActivitySummaryBackground?.ImageUrl,
-                SelectedDashboardBorderKey = selectedBorder?.Key,
-                PersonalInfoBorderCssClass = selectedBorder?.CssClass,
-                SelectedActivitySummaryBorderKey = selectedActivitySummaryBorder?.Key,
-                ActivitySummaryBorderCssClass = selectedActivitySummaryBorder?.CssClass
+                ActivitySummaryBackgroundUrl         = selectedActivitySummaryBackground?.ImageUrl,
+                SelectedDashboardBorderKey           = selectedBorder?.Key,
+                PersonalInfoBorderCssClass           = selectedBorder?.CssClass,
+                SelectedActivitySummaryBorderKey     = selectedActivitySummaryBorder?.Key,
+                ActivitySummaryBorderCssClass        = selectedActivitySummaryBorder?.CssClass
             };
         }
 

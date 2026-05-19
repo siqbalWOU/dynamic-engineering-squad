@@ -23,6 +23,11 @@ namespace InfrastructureApp.ViewModels
         // SCRUM-137: Reports submitted by the logged-in user for the private Dashboard.
         public List<DashboardSubmittedReportViewModel> SubmittedReports { get; set; } = new();
 
+        // Public profile contribution feed (paginated, approved reports only).
+        public List<PublicProfileReportViewModel> PublicProfileReports { get; set; } = new();
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
+
         // Current points earned by the user
         public int Points { get; set; }
 

@@ -1,8 +1,11 @@
 //tests to see if users appear in report details page
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
+using InfrastructureApp_Tests.Account;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -24,7 +27,7 @@ public class ReportIssueDetailsViewIntegrationTests
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
-            builder.ConfigureServices(services =>
+            builder.ConfigureTestServices(services =>
             {
                 var descriptors = services.Where(d =>
                     d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
@@ -40,6 +43,13 @@ public class ReportIssueDetailsViewIntegrationTests
                     options.UseInMemoryDatabase(_dbName)
                         .ConfigureWarnings(w => w.Ignore(
                             Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
+
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = "TestScheme";
+                    options.DefaultAuthenticateScheme = "TestScheme";
+                    options.DefaultChallengeScheme = "TestScheme";
+                }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
             });
         });
 
@@ -93,6 +103,8 @@ public class ReportIssueDetailsViewIntegrationTests
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.That(response.IsSuccessStatusCode, Is.True);
-        Assert.That(html, Does.Contain("Reported by:</strong> reporter1"));
+        Assert.That(html, Does.Contain("Reported By"));
+        Assert.That(html, Does.Contain("reporter1"));
+        Assert.That(html, Does.Contain("reporter-profile-link"));
     }
 }

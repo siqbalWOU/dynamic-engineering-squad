@@ -1,10 +1,10 @@
 @model InfrastructureApp.ViewModels.DashboardViewModel
 
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = Model.IsOwnDashboard ? "Dashboard" : $"{Model.Username}'s Profile";
 }
 
-<h1>Dashboard</h1>
+<h1>@(Model.IsOwnDashboard ? "Dashboard" : $"{Model.Username}'s Profile")</h1>
 
 @if (TempData["Success"] is string successMessage)
 {
@@ -35,17 +35,35 @@
                                 border:3px solid #0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.2);" />
                     <div>
                         <div class="fw-bold fs-5">@Model.Username</div>
-                        <div class="text-muted small">@Model.Email</div>
+                        @if (Model.IsOwnDashboard && !string.IsNullOrEmpty(Model.Email))
+                        {
+                            <div class="text-muted small">@Model.Email</div>
+                        }
                     </div>
                 </div>
-                <a class="btn btn-outline-primary btn-sm"
-                   asp-controller="Account"
-                   asp-action="ChooseAvatar">
-                    Choose / Change Avatar
-                </a>
+                @if (Model.IsOwnDashboard)
+                {
+                    <a class="btn btn-outline-primary btn-sm"
+                       asp-controller="Account"
+                       asp-action="ChooseAvatar">
+                        Choose / Change Avatar
+                    </a>
+                    <div class="d-flex gap-2 mt-3">
+                        <a class="btn btn-sm btn-outline-warning flex-fill"
+                           asp-controller="PointsShop" asp-action="Index">
+                            <i class="fa-solid fa-store me-1"></i> Points Shop
+                        </a>
+                        <a class="btn btn-sm btn-outline-info flex-fill"
+                           asp-controller="Minigames" asp-action="Index">
+                            <i class="fa-solid fa-gamepad me-1"></i> Minigames
+                        </a>
+                    </div>
+                }
             </div>
         </div>
 
+        @if (Model.IsOwnDashboard)
+        {
         <div class="card border-danger mt-3">
             <div class="card-header bg-danger text-white">
                 Account Settings
@@ -188,6 +206,7 @@
                 </a>
             </div>
         </div>
+        } @* end IsOwnDashboard account settings *@
     </div>
 
     <div class="col-md-6 mb-3">
@@ -260,6 +279,73 @@
                 </div>
             </div>
         }
+
     </div>
 
 </div>
+
+@if (!Model.IsOwnDashboard)
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-light border-secondary mt-1">
+                <div class="card-header border-secondary">
+                    <i class="fa-solid fa-flag me-2" style="color: var(--safety-orange);"></i>
+                    Contribution Feed
+                </div>
+                <div class="card-body p-2">
+                    @if (Model.PublicProfileReports.Count == 0)
+                    {
+                        <p class="text-muted small mb-0 px-1 py-2">This user hasn't reported any infrastructure issues yet.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var report in Model.PublicProfileReports)
+                            {
+                                <a href="/ReportIssue/Details/@report.Id"
+                                   class="list-group-item list-group-item-action bg-dark text-light border-secondary px-2 py-2"
+                                   data-testid="profile-report-item">
+                                    <div class="d-flex justify-content-between gap-3 align-items-start">
+                                        <div class="fw-semibold small">@report.Title</div>
+                                        <span class="text-muted small text-nowrap">@report.CreatedAt.ToString("MMM d, yyyy")</span>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav data-testid="profile-pagination" class="mt-2 px-1" aria-label="Contribution feed pages">
+                                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                                    @if (Model.CurrentPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?username=@Model.Username&page=@(Model.CurrentPage - 1)" aria-label="Previous">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    @for (var p = 1; p <= Model.TotalPages; p++)
+                                    {
+                                        <li class="page-item @(p == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link" href="?username=@Model.Username&page=@p">@p</a>
+                                        </li>
+                                    }
+                                    @if (Model.CurrentPage < Model.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?username=@Model.Username&page=@(Model.CurrentPage + 1)" aria-label="Next">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

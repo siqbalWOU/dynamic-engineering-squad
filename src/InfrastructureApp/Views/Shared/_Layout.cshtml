@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync(name: "Styles", required: false)
 
     <style>
                 /* Navbar / brand */
@@ -94,7 +95,7 @@
     <header>
          <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="/Home/Index">
                     <i class="fa-solid fa-city"></i> PatchNotes
                 </a>
                 
@@ -137,24 +138,6 @@
                         @if (User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="ReportIssue" asp-action="ReportIssue">
-                                    <i class="fa fa-car"></i> Report Issue
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="PointsShop" asp-action="Index">
-                                    <i class="fa-solid fa-store"></i> Points Shop
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Minigames" asp-action="Index">
-                                    <i class="fa-solid fa-gamepad"></i> Minigames
-                                </a>
-                            </li>
-                         @* <li class="nav-item">
-                                <a class="nav-link" href="/Achievements"><i class="fa-solid fa-medal"></i> Badges</a>
-                            </li> *@
-                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="RoadCamera" asp-action="Index"><i class="fa-solid fa-video"></i> Road Cameras </a>
                             </li>
                         }   
@@ -171,9 +154,6 @@
                         </li>
                          @if (User?.Identity?.IsAuthenticated == true)
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="ChooseAvatar"><i class="fa-solid fa-user"></i> Choose Avatar</a>
-                                </li>
                                 if (User.IsInRole("Admin"))
                                 {
                                     <li class="nav-item">

@@ -10,87 +10,186 @@
     ViewData["Title"] = "Submit Issue";
 }
 
-@if (!string.IsNullOrWhiteSpace(Model.CameraImageUrl))
-{
-    <div class="mb-4">
-        <h5>Reporting issue for this camera:</h5>
-        <img src="@Model.CameraImageUrl"
-            class="img-fluid rounded shadow-sm"
-            style="max-height: 300px;" />
+<div class="report-create-page container py-4 py-lg-5">
+    <section class="report-create-hero mb-4 mb-lg-5">
+        <div class="report-create-eyebrow">Community Infrastructure Reporting</div>
+        <h1 class="display-6 fw-bold mb-3">Submit an Infrastructure Issue</h1>
+        <p class="mb-0 text-muted">
+            Report potholes, broken signs, road hazards, damaged lighting, and other public infrastructure concerns.
+            Clear details and an accurate map pin help the issue reach the right people faster.
+        </p>
+    </section>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-8">
+            <div class="report-form-card">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <form asp-action="Create" asp-controller="ReportIssue" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <input asp-for="CameraId" type="hidden" />
+                    <input asp-for="CameraImageUrl" type="hidden" />
+
+                    @if (!string.IsNullOrWhiteSpace(Model.CameraImageUrl))
+                    {
+                        <section class="report-form-section">
+                            <div class="report-form-section__header">
+                                <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-camera"></i></span>
+                                <div>
+                                    <h2 class="h5 mb-1">Camera evidence</h2>
+                                    <p class="text-muted mb-0">This report is linked to a road camera image.</p>
+                                </div>
+                            </div>
+
+                            <div class="report-camera-preview-card">
+                                <img src="@Model.CameraImageUrl"
+                                     class="img-fluid rounded"
+                                     alt="Camera image attached to this report" />
+                            </div>
+                        </section>
+                    }
+
+                    <section class="report-form-section">
+                        <div class="report-form-section__header">
+                            <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-pen-to-square"></i></span>
+                            <div>
+                                <h2 class="h5 mb-1">Describe the issue</h2>
+                                <p class="text-muted mb-0">Share what happened, what people should look for, and nearby landmarks if helpful.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label asp-for="Description" class="form-label"></label>
+
+                            <div class="position-relative">
+                                <textarea asp-for="Description"
+                                          id="Description"
+                                          class="form-control"
+                                          maxlength="300"
+                                          rows="5"
+                                          spellcheck="true"
+                                          placeholder="Describe the infrastructure issue here. Add a clear description and the location. (300 characters max)"
+                                          aria-label="Issue description"></textarea>
+
+                                <div id="descriptionSuggestions" class="autocomplete-dropdown d-none"></div>
+                            </div>
+
+                            <span asp-validation-for="Description" class="text-danger"></span>
+
+                            <div class="form-text report-character-count">
+                                <span>Character Count: </span>
+                                <span id="descCount">0</span>/300
+                            </div>
+                        </div>
+                    </section>
+
+                    @if (string.IsNullOrWhiteSpace(Model.CameraImageUrl))
+                    {
+                        <section class="report-form-section">
+                            <div class="report-form-section__header">
+                                <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                                <div>
+                                    <h2 class="h5 mb-1">Upload evidence</h2>
+                                    <p class="text-muted mb-0">Add a photo if you have one. A clear image can make verification easier.</p>
+                                </div>
+                            </div>
+
+                            <div class="mb-0">
+                                <label asp-for="Photo" class="form-label"></label>
+                                <input asp-for="Photo" type="file" class="form-control" />
+                                <span asp-validation-for="Photo" class="text-danger"></span>
+                            </div>
+                        </section>
+                    }
+
+                    <section class="report-form-section">
+                        <div class="report-form-section__header">
+                            <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                            <div>
+                                <h2 class="h5 mb-1">Pin the location</h2>
+                                <p class="text-muted mb-0">Click the map to place the marker where the issue happened.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label">Select location</label>
+                            <div class="report-map-shell">
+                                <div id="map"></div>
+                            </div>
+                            <small class="text-muted d-block mt-2">Click on the map to drop a marker where the issue happened.</small>
+                            <span asp-validation-for="Latitude" class="text-danger d-block"></span>
+                            <span asp-validation-for="Longitude" class="text-danger d-block"></span>
+                        </div>
+                    </section>
+
+                    <input asp-for="Latitude" type="hidden" id="Latitude" />
+                    <input asp-for="Longitude" type="hidden" id="Longitude" />
+
+                    <section class="report-form-section report-form-section--compact">
+                        <div class="report-form-section__header">
+                            <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span>
+                            <div>
+                                <h2 class="h5 mb-1">Submit your report</h2>
+                                <p class="text-muted mb-0">Review your details, then send the report for moderation and follow-up.</p>
+                            </div>
+                        </div>
+
+                        <div class="report-form-actions">
+                            <button type="submit"
+                                    class="btn report-action-btn report-action-btn--primary"
+                                    aria-label="Submit the issue report">
+                                Submit
+                            </button>
+
+                            <a class="btn report-action-btn"
+                               asp-action="ReportIssue"
+                               aria-label="Cancel and return to report issue page">
+                                Cancel
+                            </a>
+                        </div>
+                    </section>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="d-grid gap-4">
+                <aside class="report-help-card">
+                    <div class="report-form-section__header mb-3">
+                        <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                        <div>
+                            <h2 class="h5 mb-1">What makes a good report?</h2>
+                            <p class="text-muted mb-0">Useful reports are specific, local, and easy to verify.</p>
+                        </div>
+                    </div>
+
+                    <ul class="report-help-list mb-0">
+                        <li>Describe the problem clearly, such as a pothole, sign damage, flooding, or unsafe debris.</li>
+                        <li>Include nearby landmarks, intersections, or lane details when they fit in the description.</li>
+                        <li>Use the map pin carefully so responders can find the right spot quickly.</li>
+                        <li>Attach a photo when available, especially for hazards that may change over time.</li>
+                    </ul>
+                </aside>
+
+                <aside class="report-help-card">
+                    <div class="report-form-section__header mb-3">
+                        <span class="report-form-section__icon" aria-hidden="true"><i class="fa-solid fa-route"></i></span>
+                        <div>
+                            <h2 class="h5 mb-1">What happens next?</h2>
+                            <p class="text-muted mb-0">Reports move through moderation before becoming part of the public issue flow.</p>
+                        </div>
+                    </div>
+
+                    <ul class="report-help-list mb-0">
+                        <li>Your submission is checked for safety and content policy compliance.</li>
+                        <li>Approved reports can be surfaced for community visibility and verification.</li>
+                        <li>Accurate descriptions, images, and map pins improve the odds of a smooth review.</li>
+                    </ul>
+                </aside>
+            </div>
+        </div>
     </div>
-}      
-<!--report issue submission form-->
-<div class="container py-4">
-    <h1 class="h3 mb-3">Issue Submission Form</h1>
-
-    <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-    <form asp-action="Create" asp-controller="ReportIssue" method="post" enctype="multipart/form-data">
-        @Html.AntiForgeryToken()
-
-        <input asp-for="CameraId" type="hidden" />
-        <input asp-for="CameraImageUrl" type="hidden" />
-
-        <!--text box-->
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label"></label>
-
-            <div class="position-relative">
-                <textarea asp-for="Description"
-                        id="Description"
-                        class="form-control"
-                        maxlength="300"
-                        rows="5"
-                        spellcheck="true"
-                        placeholder="Describe the infrastructure issue here. Add a clear description and the location. (300 characters max)"
-                        aria-label="Issue description"></textarea>
-
-                <div id="descriptionSuggestions" class="autocomplete-dropdown d-none"></div>
-            </div>
-
-            <span asp-validation-for="Description" class="text-danger"></span>
-
-            <div class="form-text">
-                <span>Character Count: </span>
-                <span id="descCount">0</span>/300
-            </div>
-        </div>
-
-        <!--picture upload-->
-       @if (string.IsNullOrWhiteSpace(Model.CameraImageUrl))
-        {
-            <div class="mb-3">
-                <label asp-for="Photo" class="form-label"></label>
-                <input asp-for="Photo" type="file" class="form-control" />
-                <span asp-validation-for="Photo" class="text-danger"></span>
-            </div>
-        }
-
-        <!--map-->
-        <div class="mb-3">
-            <label class="form-label">Select location</label>
-            <div id="map" style="height: 380px; width: 100%; border-radius: 12px;"></div>
-            <small class="text-muted">Click on the map to drop a marker where the issue happened.</small>
-            <span asp-validation-for="Latitude" class="text-danger d-block"></span>
-            <span asp-validation-for="Longitude" class="text-danger d-block"></span>
-        </div>
-
-        <!--hidden inputs that get populated by javascript-->
-        <input asp-for="Latitude" type="hidden" id="Latitude" />
-        <input asp-for="Longitude" type="hidden" id="Longitude" />
-
-        <button type="submit"
-                class="btn report-action-btn report-action-btn--primary"
-                aria-label="Submit the issue report">
-            Submit
-        </button>
-
-        <a class="btn report-action-btn ms-2"
-           asp-action="ReportIssue"
-           aria-label="Cancel and return to report issue page">
-            Cancel
-        </a>
-    </form>
 </div>
 
 

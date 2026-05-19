@@ -38,6 +38,8 @@ namespace InfrastructureApp.Data
 
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
+        public DbSet<ReportStatusHistory> ReportStatusHistory { get; set; } = null!;
+
         //This is the place for constraints, defaults, indexes, and relationships
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -211,6 +213,30 @@ namespace InfrastructureApp.Data
             builder.Entity<ReportFlag>()
                 .HasIndex(f => new { f.ReportIssueId, f.UserId })
                 .IsUnique();
+
+            builder.Entity<ReportStatusHistory>(entity =>
+            {
+                entity.HasKey(h => h.Id);
+
+                entity.Property(h => h.Status)
+                    .HasMaxLength(50)
+                    .IsRequired();
+
+                entity.Property(h => h.ChangedAt)
+                    .HasColumnType("datetime2")
+                    .IsRequired();
+
+                entity.Property(h => h.ChangedByUserId)
+                    .HasMaxLength(450);
+
+                entity.Property(h => h.ChangedByDisplayName)
+                    .HasMaxLength(256);
+
+                entity.HasOne(h => h.ReportIssue)
+                    .WithMany()
+                    .HasForeignKey(h => h.ReportIssueId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             builder.Entity<AuditLog>(entity =>
             {

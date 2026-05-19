@@ -47,8 +47,23 @@
     }
 }
 
-<div class="container py-4">
-    <h1 class="h3 mb-3">Report Submitted</h1>
+<div class="container py-4 report-details-page">
+    <section class="report-details-hero mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+            <div>
+                <span class="report-create-eyebrow">
+                    <i class="fa-solid fa-file-lines"></i>
+                    PatchNotes Report
+                </span>
+                <h1 class="mb-2">Report Submitted</h1>
+                <p class="mb-0 text-muted">Thanks for helping keep the community updated.</p>
+            </div>
+            <div class="report-details-hero__pills">
+                <span class="report-details-pill">Report #@Model.Id</span>
+                <span class="report-details-pill report-details-pill--status">@Model.Status</span>
+            </div>
+        </div>
+    </section>
 
     @if (!string.IsNullOrWhiteSpace(Model.IssueName))
     {
@@ -65,8 +80,7 @@
         </div>
     }
 
-    <div class="report-card">
-        <p><strong>Status:</strong> @Model.Status</p>
+    <div class="report-details-card">
         @{
             var severityClass = Model.SeverityStatus switch
             {
@@ -78,87 +92,196 @@
             };
         }
 
-        <p>
-            <strong>Severity:</strong>
-            <span class="badge @severityClass px-3 py-2" data-testid="severity-status">
-                @Model.SeverityStatus
-            </span>
-        </p>
+        <div class="report-details-grid">
+            <div class="report-details-meta">
+                <div class="report-details-meta-card">
+                    <span class="report-details-meta-label">Status</span>
+                    <span class="report-details-meta-value">@Model.Status</span>
+                </div>
+                <div class="report-details-meta-card">
+                    <span class="report-details-meta-label">Severity</span>
+                    <span class="badge @severityClass px-3 py-2 align-self-start" data-testid="severity-status">
+                        @Model.SeverityStatus
+                    </span>
+                </div>
+                <div class="report-details-meta-card">
+                    <span class="report-details-meta-label">Created</span>
+                    <span class="report-details-meta-value">@Model.CreatedAt</span>
+                </div>
+                <div class="report-details-meta-card">
+                    <span class="report-details-meta-label">Reported By</span>
+                    <span class="report-details-meta-value">
+                        @if (Model.User != null && !string.IsNullOrWhiteSpace(Model.User.UserName))
+                        {
+                            <a href="/Dashboard?username=@Model.User.UserName"
+                               data-testid="reporter-profile-link">@reporterDisplay</a>
+                        }
+                        else
+                        {
+                            @reporterDisplay
+                        }
+                    </span>
+                </div>
+            </div>
 
-        @if (!string.IsNullOrWhiteSpace(Model.SeverityReason))
-        {
-            <p>
-                <strong>Reason:</strong><br />
-                <span data-testid="severity-reason">@Model.SeverityReason</span>
-            </p>
-        }
-        else
-        {
-            <p class="text-muted">
-                <strong>Reason:</strong> <span data-testid="severity-reason">Not available.</span>
-            </p>
-        }
-        <p><strong>Created:</strong> @Model.CreatedAt</p>
-        <p><strong>Reported by:</strong> @reporterDisplay</p>
-        <p>
-            <strong>Description:</strong><br />
-            <span class="report-text-wrap text-break">@Model.Description</span>
-        </p>
-        <p><strong>Location:</strong> (@Model.Latitude, @Model.Longitude)</p>
+            <div class="report-details-section">
+                <div class="report-details-section__header">
+                    <div>
+                        <h2 class="h5 mb-1">Description</h2>
+                        <p class="mb-0 text-muted">Community-submitted issue details.</p>
+                    </div>
+                </div>
+                <span class="report-text-wrap text-break">@Model.Description</span>
+            </div>
 
-        <div class="mt-3">
-            <p><strong>Location on map:</strong></p>
+            <div class="report-details-section report-details-section--highlight">
+                <div class="report-details-section__header">
+                    <div>
+                        <h2 class="h5 mb-1">Severity Reason</h2>
+                        <p class="mb-0 text-muted">Why this report was classified at its current severity.</p>
+                    </div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.SeverityReason))
+                {
+                    <span data-testid="severity-reason">@Model.SeverityReason</span>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        <span data-testid="severity-reason">Not available.</span>
+                    </p>
+                }
+            </div>
 
-            <div id="submittedMap"   data-lat="@Model.Latitude"    data-lng="@Model.Longitude"
-                 style="height:320px; width:100%; border-radius:12px;">
+            <div class="report-details-section">
+                <div class="report-details-section__header">
+                    <div>
+                        <h2 class="h5 mb-1">Location</h2>
+                        <p class="mb-0 text-muted">Coordinates and map reference for the submitted issue.</p>
+                    </div>
+                </div>
+                <div class="report-details-coordinates">
+                    <div class="report-details-coordinate">
+                        <span class="report-details-meta-label">Latitude</span>
+                        <span class="report-details-meta-value">@Model.Latitude</span>
+                    </div>
+                    <div class="report-details-coordinate">
+                        <span class="report-details-meta-label">Longitude</span>
+                        <span class="report-details-meta-value">@Model.Longitude</span>
+                    </div>
+                </div>
+
+                <div class="report-details-map-shell mt-3">
+                    <div id="submittedMap" data-lat="@Model.Latitude" data-lng="@Model.Longitude"
+                         style="height:320px; width:100%; border-radius:12px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-details-section">
+                <div class="report-details-section__header">
+                    <div>
+                        <h2 class="h5 mb-1">Submitted Image</h2>
+                        <p class="mb-0 text-muted">Photo evidence attached to the report.</p>
+                    </div>
+                </div>
+                <div class="report-details-image-shell">
+                    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                    {
+                        <!-- SCRUM-102 ADDED: hide broken image and show fallback message -->
+                        <img src="@Model.ImageUrl" class="img-fluid rounded" alt="Uploaded issue photo"
+                             onerror="this.classList.add('d-none'); document.getElementById('detailsImageFallback').classList.remove('d-none');" />
+
+                        <!-- SCRUM-102 ADDED: shown only if the image file cannot be loaded -->
+                        <p id="detailsImageFallback" class="text-muted d-none mb-0">
+                            Image could not be loaded.
+                        </p>
+                    }
+                    else
+                    {
+                        <!-- SCRUM-102 ADDED: fallback when no image URL exists -->
+                        <p class="text-muted mb-0">No image was provided for this report.</p>
+                    }
+                </div>
             </div>
         </div>
-
-        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
-        {
-            <p><strong>Image:</strong></p>
-
-            <!-- SCRUM-102 ADDED: hide broken image and show fallback message -->
-            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="Uploaded issue photo"
-                 onerror="this.classList.add('d-none'); document.getElementById('detailsImageFallback').classList.remove('d-none');" />
-
-            <!-- SCRUM-102 ADDED: shown only if the image file cannot be loaded -->
-            <p id="detailsImageFallback" class="text-muted d-none">
-                Image could not be loaded.
-            </p>
-        }
-        else
-        {
-            <!-- SCRUM-102 ADDED: fallback when no image URL exists -->
-            <p class="text-muted">No image was provided for this report.</p>
-        }
     </div>
+
+    <!-- Status Timeline -->
+    @{
+        var statusHistory = ViewBag.StatusHistory as List<InfrastructureApp.ViewModels.ReportStatusHistoryViewModel>;
+    }
+    @if (statusHistory != null && statusHistory.Count > 0)
+    {
+        <div class="report-card mt-3">
+            <h2 class="h6 text-muted text-uppercase mb-3 mb-0">
+                <i class="fa-solid fa-clock me-1"></i> Status Timeline
+            </h2>
+            <div class="d-flex flex-column gap-3 mt-3">
+                @foreach (var entry in statusHistory)
+                {
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="mt-1 flex-shrink-0">
+                            <i class="fa-solid fa-circle @(entry.IsCurrent ? "text-safety-orange" : "text-muted")"
+                               style="font-size:0.6rem;"></i>
+                        </div>
+                        <div>
+                            <div>
+                                <span class="@(entry.IsCurrent ? "fw-bold" : "")">@entry.Status</span>
+                                @if (entry.IsCurrent)
+                                {
+                                    <span class="badge bg-primary ms-2 px-2 py-1 small">Current</span>
+                                }
+                            </div>
+                            <div class="text-muted small">
+                                @entry.ChangedAt.ToString("MMM d, yyyy h:mm tt") &middot; by @entry.ChangedByDisplayName
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     <!-- Admin actions -->
     @if (User.IsInRole("Admin"))
     {
         @if (Model.Status == "Approved")
         {
-            <div class="mt-3 d-flex align-items-center gap-3">
-                <form asp-action="MarkResolved" asp-route-id="@Model.Id" method="post">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-warning fw-bold">
-                        <i class="fa-solid fa-wrench me-1"></i>
-                        Mark as Resolved
-                    </button>
-                </form>
-                @if (ViewBag.VerifyCount > 0)
-                {
-                    <span class="text-muted">
-                        <i class="fa-solid fa-circle-check text-success me-1"></i>
-                        @ViewBag.VerifyCount community member@(ViewBag.VerifyCount == 1 ? "" : "s") verified this is fixed
-                    </span>
-                }
+            <div class="report-details-admin-panel mt-4">
+                <div class="report-details-section__header mb-3">
+                    <div>
+                        <h2 class="h5 mb-1">Admin Actions</h2>
+                        <p class="mb-0 text-muted">Moderation and resolution controls for this report.</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <form asp-action="MarkResolved" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning fw-bold">
+                            <i class="fa-solid fa-wrench me-1"></i>
+                            Mark as Resolved
+                        </button>
+                    </form>
+                    @if (ViewBag.VerifyCount > 0)
+                    {
+                        <span class="text-muted">
+                            <i class="fa-solid fa-circle-check text-success me-1"></i>
+                            @ViewBag.VerifyCount community member@(ViewBag.VerifyCount == 1 ? "" : "s") verified this is fixed
+                        </span>
+                    }
+                </div>
             </div>
         }
         else if (Model.Status == "Resolved")
         {
-            <div class="mt-3">
+            <div class="report-details-admin-panel mt-4">
+                <div class="report-details-section__header mb-3">
+                    <div>
+                        <h2 class="h5 mb-1">Admin Actions</h2>
+                        <p class="mb-0 text-muted">Moderation and resolution controls for this report.</p>
+                    </div>
+                </div>
                 <form asp-action="MarkVerifiedFixed" asp-route-id="@Model.Id" method="post">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-success fw-bold">
@@ -175,8 +298,8 @@
     {
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <div class="alert alert-info mt-4 mb-0" role="alert">
-                <p class="mb-2 fw-bold"><i class="fa-solid fa-tag me-1"></i> This issue has enough community votes — give it a name!</p>
+            <div class="alert alert-info mt-4 mb-0 report-details-naming-alert" role="alert">
+                <p class="mb-2 fw-bold"><i class="fa-solid fa-tag me-1"></i> This issue has enough community votes - give it a name!</p>
                 @if (TempData["NameError"] != null)
                 {
                     <div class="text-danger small mb-2">@TempData["NameError"]</div>
@@ -184,7 +307,7 @@
                 <form asp-action="NameIssue" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 align-items-center flex-wrap">
                     @Html.AntiForgeryToken()
                     <select name="name" class="form-select form-select-sm w-auto" required>
-                        <option value="" disabled selected>Choose a name…</option>
+                        <option value="" disabled selected>Choose a name...</option>
                         @foreach (var n in (string[])ViewBag.AvailableNames)
                         {
                             <option value="@n">@n</option>
@@ -197,87 +320,91 @@
     }
 
     <!-- Community actions row -->
-    <div class="mt-4 d-flex gap-3">
+    <div class="report-details-actions mt-4">
+        <div class="report-details-section__header mb-3">
+            <div>
+                <h2 class="h5 mb-1">Community Actions</h2>
+                <p class="mb-0 text-muted">Support, verify, or flag this report while preserving the existing workflow.</p>
+            </div>
+        </div>
 
-        <!-- Vote -->
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <button id="voteBtn"
-                    class="btn @(ViewBag.UserHasVoted ? "btn-primary" : "btn-outline-primary") fw-bold flex-fill py-2"
-                    data-report-id="@Model.Id"
-                    data-voted="@ViewBag.UserHasVoted.ToString().ToLower()">
-                <i class="fa-solid fa-thumbs-up me-1"></i>
-                I've seen this too
-            </button>
-        }
-        else
-        {
-            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary fw-bold flex-fill py-2 text-center">
-                <i class="fa-solid fa-thumbs-up me-1"></i>
-                I've seen this too
-            </a>
-        }
-
-        <!-- Verify -->
-        @if (Model.Status == "Approved")
-        {
+        <div class="report-details-community-actions">
+            <!-- Vote -->
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <button id="verifyBtn"
-                        class="btn @(ViewBag.UserHasVerified ? "btn-success" : "btn-outline-success") fw-bold flex-fill py-2"
-                        data-report-id="@Model.Id">
-                    <i class="fa-solid fa-circle-check me-1"></i>
-                    I've verified this is fixed
+                <button id="voteBtn"
+                        class="btn @(ViewBag.UserHasVoted ? "btn-primary" : "btn-outline-primary") fw-bold flex-fill py-2"
+                        data-report-id="@Model.Id"
+                        data-voted="@ViewBag.UserHasVoted.ToString().ToLower()">
+                    <i class="fa-solid fa-thumbs-up me-1"></i>
+                    I've seen this too
                 </button>
             }
             else
             {
-                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success fw-bold flex-fill py-2 text-center">
-                    <i class="fa-solid fa-circle-check me-1"></i>
-                    I've verified this is fixed
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary fw-bold flex-fill py-2 text-center">
+                    <i class="fa-solid fa-thumbs-up me-1"></i>
+                    I've seen this too
                 </a>
             }
-        }
-        else if (Model.Status == "Resolved")
-        {
-            <span class="badge bg-success fs-6 flex-fill py-2 text-center d-flex align-items-center justify-content-center">
-                <i class="fa-solid fa-circle-check me-1"></i> Resolved
-            </span>
-        }
-        else
-        {
-            <div class="flex-fill"></div>
-        }
 
-        <!-- Flag -->
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <button type="button"
-                    id="flagBtn"
-                    data-testid="flag-button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#flagModal"
-                    aria-controls="flagModal"
-                    onclick="window.showFlagModalFromButton?.(this)"
-                    class="btn @(ViewBag.UserHasFlagged ? "btn-secondary" : "btn-outline-danger") fw-bold flex-fill py-2"
-                    data-report-id="@Model.Id"
-                    @(ViewBag.UserHasFlagged ? "disabled" : "")>
-                <i class="fa-solid fa-flag me-1"></i>
-                @(ViewBag.UserHasFlagged ? "Already Flagged" : "Flag Inappropriate Content")
-            </button>
-        }
-        else
-        {
-            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-danger fw-bold flex-fill py-2 text-center">
-                <i class="fa-solid fa-flag me-1"></i>
-                Flag Inappropriate Content
-            </a>
-        }
+            <!-- Verify -->
+            @if (Model.Status == "Approved")
+            {
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <button id="verifyBtn"
+                            class="btn @(ViewBag.UserHasVerified ? "btn-success" : "btn-outline-success") fw-bold flex-fill py-2"
+                            data-report-id="@Model.Id">
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        I've verified this is fixed
+                    </button>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success fw-bold flex-fill py-2 text-center">
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        I've verified this is fixed
+                    </a>
+                }
+            }
+            else if (Model.Status == "Resolved")
+            {
+                <span class="badge bg-success fs-6 flex-fill py-2 text-center d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-circle-check me-1"></i> Resolved
+                </span>
+            }
+            else
+            {
+                <div class="flex-fill"></div>
+            }
 
+            <!-- Flag -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <button type="button"
+                        id="flagBtn"
+                        data-testid="flag-button"
+                        onclick="window.showFlagModalFromButton?.(this)"
+                        class="btn @(ViewBag.UserHasFlagged ? "btn-secondary" : "btn-outline-danger") fw-bold flex-fill py-2"
+                        data-report-id="@Model.Id"
+                        @(ViewBag.UserHasFlagged ? "disabled" : "")>
+                    <i class="fa-solid fa-flag me-1"></i>
+                    @(ViewBag.UserHasFlagged ? "Already Flagged" : "Flag Inappropriate Content")
+                </button>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-danger fw-bold flex-fill py-2 text-center">
+                    <i class="fa-solid fa-flag me-1"></i>
+                    Flag Inappropriate Content
+                </a>
+            }
+        </div>
     </div>
 
     <!-- Vote / verify counts -->
-    <div class="d-flex gap-3 mt-1">
+    <div class="report-details-community-counts d-flex gap-3 mt-2">
         <small class="flex-fill text-center text-muted">
             <span id="voteCount">@ViewBag.VoteCount</span>
             community vote@(ViewBag.VoteCount == 1 ? "" : "s")
@@ -296,7 +423,7 @@
         <div class="flex-fill"></div>
     </div>
 
-    <div class="mt-4 d-flex gap-3">
+    <div class="mt-4 d-flex gap-3 report-details-navigation">
         <a class="btn report-action-btn flex-fill text-center py-2"
            asp-action="Create"
            aria-label="Report another issue">
@@ -322,7 +449,7 @@
     {
         var shareUrl = Uri.EscapeDataString($"{Context.Request.Scheme}://{Context.Request.Host}/ReportIssue/Details/{Model.Id}");
         var facebookShareUrl = $"https://www.facebook.com/sharer/sharer.php?u={shareUrl}";
-        <div class="mt-2 d-flex gap-3">
+        <div class="mt-3 d-flex gap-3 report-details-share">
             <div class="flex-fill"></div>
             <div class="flex-fill text-center">
                 <p class="mb-1 small text-muted fw-bold">Share this issue:</p>
@@ -363,5 +490,5 @@
         {
             <text><script>setTimeout(launchConfetti, 500);</script></text>
         }
-    
+
 }

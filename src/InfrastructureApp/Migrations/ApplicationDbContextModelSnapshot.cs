@@ -17,7 +17,7 @@ namespace InfrastructureApp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.14")
+                .HasAnnotation("ProductVersion", "9.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -228,6 +228,40 @@ namespace InfrastructureApp.Migrations
                     b.HasIndex("UserId", "ImageSha256");
 
                     b.ToTable("Reports", (string)null);
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportStatusHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChangedByDisplayName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ChangedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ReportIssueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportIssueId");
+
+                    b.ToTable("ReportStatusHistory");
                 });
 
             modelBuilder.Entity("InfrastructureApp.Models.ReportVerification", b =>
@@ -658,6 +692,17 @@ namespace InfrastructureApp.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("InfrastructureApp.Models.ReportStatusHistory", b =>
+                {
+                    b.HasOne("InfrastructureApp.Models.ReportIssue", "ReportIssue")
+                        .WithMany()
+                        .HasForeignKey("ReportIssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReportIssue");
                 });
 
             modelBuilder.Entity("InfrastructureApp.Models.UserShopItemPurchase", b =>

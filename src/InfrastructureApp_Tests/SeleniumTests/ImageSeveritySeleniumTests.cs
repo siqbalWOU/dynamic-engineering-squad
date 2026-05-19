@@ -40,7 +40,7 @@ namespace InfrastructureApp_Tests.SeleniumTests
             Assert.That(submitButton.Text.Trim(), Is.EqualTo("Submit"));
 
             Assert.That(description.GetAttribute("placeholder"), Does.Contain("Describe the infrastructure issue"));
-            Assert.That(Driver.PageSource, Does.Contain("Issue Submission Form"));
+            Assert.That(Driver.PageSource, Does.Contain("Submit an Infrastructure Issue"));
         }
     }
 }

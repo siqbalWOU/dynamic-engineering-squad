@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using InfrastructureApp.Services;
+using System.Security.Claims;
 
 namespace InfrastructureApp_Tests.Account;
 
@@ -269,5 +270,23 @@ public class AccountControllerTests
         var viewResult = result as ViewResult;
         Assert.That(viewResult.ViewName, Is.EqualTo("RegisterConfirmation"));
         _mockEmailService.Verify(x => x.SendEmailAsync("test@test.com", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Test]
+    public async Task Logout_LogsAuditEntryBeforeSigningOut()
+    {
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "user-123")
+            }, "TestAuth"));
+
+        var result = await _controller.Logout();
+
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        _mockAuditLogService.Verify(
+            x => x.LogAsync("User logout succeeded.", "user-123", It.IsAny<CancellationToken>()),
+            Times.Once);
+        _mockSignInManager.Verify(x => x.SignOutAsync(), Times.Once);
     }
 }

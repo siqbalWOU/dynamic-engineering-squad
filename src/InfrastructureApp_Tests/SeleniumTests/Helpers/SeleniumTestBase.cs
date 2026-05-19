@@ -96,6 +96,7 @@ namespace InfrastructureApp_Tests.SeleniumTests.Helpers
                 builder.Services.AddScoped<IFlagService, FlagService>();
                 builder.Services.AddScoped<IPointsShopService, PointsShopService>();
                 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+                builder.Services.AddScoped<IStatusHistoryService, StatusHistoryService>();
                 builder.Services.AddScoped<IModerationService, ModerationService>();
                 builder.Services.AddScoped<ITripCheckService, TripCheckService>();
                 builder.Services.AddScoped<IContentModerationService, ContentModerationService>();

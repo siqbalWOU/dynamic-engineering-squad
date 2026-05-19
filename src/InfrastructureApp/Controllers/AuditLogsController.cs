@@ -15,9 +15,9 @@ namespace InfrastructureApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(int page = 1, CancellationToken cancellationToken = default)
         {
-            var logs = await _auditLogService.GetLatestAsync(100, cancellationToken);
+            var logs = await _auditLogService.GetPageAsync(page, 50, cancellationToken);
             return View(logs);
         }
     }

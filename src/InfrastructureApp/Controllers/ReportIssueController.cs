@@ -2,6 +2,7 @@
 
 using InfrastructureApp.Models;
 using InfrastructureApp.Services;
+using InfrastructureApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +21,9 @@ namespace InfrastructureApp.Controllers
         private readonly IFlagService _flagService;
         private readonly IIssueNameService _issueNameService;
         private readonly IAuditLogService _auditLogService;
+        private readonly IStatusHistoryService _statusHistoryService;
 
-        public ReportIssueController(IReportIssueService service, UserManager<Users> userManager, IVoteService voteService, IVerifyFixService verifyFixService, IFlagService flagService, IIssueNameService issueNameService, IAuditLogService auditLogService)
+        public ReportIssueController(IReportIssueService service, UserManager<Users> userManager, IVoteService voteService, IVerifyFixService verifyFixService, IFlagService flagService, IIssueNameService issueNameService, IAuditLogService auditLogService, IStatusHistoryService statusHistoryService)
         {
             _service = service;
             _userManager = userManager;
@@ -30,6 +32,7 @@ namespace InfrastructureApp.Controllers
             _flagService = flagService;
             _issueNameService = issueNameService;
             _auditLogService = auditLogService;
+            _statusHistoryService = statusHistoryService;
         }
 
         //landing page
@@ -103,6 +106,10 @@ namespace InfrastructureApp.Controllers
                     $"Report submitted. ReportId={reportId}; Status={status}.",
                     userId);
 
+                var submitterName = User.Identity?.Name ?? "Unknown";
+                await _statusHistoryService.AddEntryAsync(reportId, "Reported", userId, submitterName);
+                await _statusHistoryService.AddEntryAsync(reportId, status, null, "System");
+
                 TempData["Success"] = status == "Approved"
                     ? "XP gained! +10 points awarded."
                     : "Report submitted! It will appear on the map once moderation is complete.";
@@ -144,6 +151,9 @@ namespace InfrastructureApp.Controllers
             var found = await _service.UpdateStatusAsync(id, "Resolved");
             if (!found) return NotFound();
 
+            var adminName = User.Identity?.Name ?? "Unknown";
+            await _statusHistoryService.AddEntryAsync(id, "Resolved", _userManager.GetUserId(User), adminName);
+
             TempData["Success"] = "Report marked as Resolved and added to the verify queue.";
             return RedirectToAction("Details", new { id });
         }
@@ -155,6 +165,9 @@ namespace InfrastructureApp.Controllers
         {
             var found = await _service.UpdateStatusAsync(id, "Verified Fixed");
             if (!found) return NotFound();
+
+            var adminName = User.Identity?.Name ?? "Unknown";
+            await _statusHistoryService.AddEntryAsync(id, "Verified Fixed", _userManager.GetUserId(User), adminName);
 
             await _auditLogService.LogAsync(
                 $"Report verified fixed by administrator. ReportId={id}; Status=Verified Fixed.",
@@ -185,6 +198,37 @@ namespace InfrastructureApp.Controllers
 
             ViewBag.NamingThreshold = IssueNameService.NamingThreshold;
             ViewBag.AvailableNames = IssueNameService.Names;
+
+            var rawHistory = await _statusHistoryService.GetHistoryAsync(id);
+            var isAdmin = User.IsInRole("Admin");
+
+            var filtered = isAdmin
+                ? rawHistory.ToList()
+                : rawHistory.Where(h => h.Status != "Pending").ToList();
+
+            // Always ensure "Reported" is the first entry (covers legacy reports that
+            // predate this feature and reports whose first recorded entry was mid-lifecycle).
+            if (!filtered.Any(h => h.Status == "Reported"))
+            {
+                filtered.Insert(0, new ReportStatusHistory
+                {
+                    Status = "Reported",
+                    ChangedAt = report.CreatedAt,
+                    ChangedByDisplayName = report.User?.UserName ?? "Unknown"
+                });
+            }
+
+            var timeline = filtered
+                .Select((h, i) => new ReportStatusHistoryViewModel
+                {
+                    Status = h.Status,
+                    ChangedAt = h.ChangedAt,
+                    ChangedByDisplayName = h.ChangedByDisplayName ?? "System",
+                    IsCurrent = i == filtered.Count - 1
+                })
+                .ToList();
+
+            ViewBag.StatusHistory = timeline;
 
             return View(report);
         }
