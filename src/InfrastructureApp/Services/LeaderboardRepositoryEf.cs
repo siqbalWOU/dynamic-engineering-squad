@@ -15,34 +15,29 @@ public class LeaderboardRepositoryEf : ILeaderboardRepository
 
     public async Task<IReadOnlyCollection<LeaderboardEntry>> GetAllAsync()
     {
-        // Project to an anonymous type first so we can call AvatarCatalog.ToUrl()
-        // outside the EF query (it's C# code, not translatable to SQL).
-        var raw = await _db.Users
+        // Keep the EF queries simple so this works consistently with SQLite in Selenium tests.
+        var users = await _db.Users
             .Where(u => u.UserName != null)
-            .GroupJoin(
-                _db.UserPoints,
-                u => u.Id,
-                p => p.UserId,
-                (u, pts) => new { u, pts }
-            )
-            .Select(x => new
-            {
-                UserName   = x.u.UserName!,
-                AvatarKey  = x.u.AvatarKey,
-                AvatarUrl  = x.u.AvatarUrl,
-                UserPoints = x.pts.Select(p => p.CurrentPoints).FirstOrDefault(),
-                UpdatedAt  = x.pts.Select(p => p.LastUpdated).FirstOrDefault()
-            })
             .ToListAsync();
 
-        var results = raw.Select(x => new LeaderboardEntry
+        var userPoints = await _db.UserPoints.ToListAsync();
+        var pointsByUserId = userPoints
+            .GroupBy(p => p.UserId)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var results = users.Select(user =>
         {
-            UserId       = x.UserName,
-            UserPoints   = x.UserPoints,
-            UpdatedAtUtc = x.UpdatedAt,
-            AvatarUrl    = !string.IsNullOrWhiteSpace(x.AvatarUrl)
-                               ? x.AvatarUrl
-                               : AvatarCatalog.ToUrl(x.AvatarKey)
+            pointsByUserId.TryGetValue(user.Id, out var points);
+
+            return new LeaderboardEntry
+            {
+                UserId = user.UserName!,
+                UserPoints = points?.CurrentPoints ?? 0,
+                UpdatedAtUtc = points?.LastUpdated ?? default,
+                AvatarUrl = !string.IsNullOrWhiteSpace(user.AvatarUrl)
+                    ? user.AvatarUrl
+                    : AvatarCatalog.ToUrl(user.AvatarKey)
+            };
         }).ToList();
 
         return results.AsReadOnly();

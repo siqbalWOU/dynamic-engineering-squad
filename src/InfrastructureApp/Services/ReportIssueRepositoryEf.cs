@@ -83,7 +83,7 @@ namespace InfrastructureApp.Services
             return await query.ToListAsync();
         }
 
-        // SCRUM-157: Applies the existing latest reports pipeline before paging results.
+        // Applies the existing latest reports pipeline before paging results.
         public async Task<PaginatedList<ReportIssue>> GetPaginatedLatestReportsAsync(bool isAdmin, string? keyword, string? sort, int pageNumber, int pageSize)
         {
             var query = _db.ReportIssue.AsQueryable();

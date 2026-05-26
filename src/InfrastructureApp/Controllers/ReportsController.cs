@@ -23,13 +23,10 @@ namespace InfrastructureApp.Controllers
         {
             bool isAdmin = User.IsInRole("Admin");
 
-            // SCRUM-157: Keep each Latest Reports page short and readable.
             const int pageSize = 10;
 
-            // SCRUM-157: Normalize paging input before asking the repository for one page.
             var pageNumber = page < 1 ? 1 : page;
 
-            // SCRUM-157: Only allow the supported sort values from the UI/query string.
             var sortOrder = string.Equals(sort, "oldest", StringComparison.OrdinalIgnoreCase) ? "oldest" : "newest";
 
             // Repository applies the full query pipeline so the controller stays thin.
@@ -38,16 +35,11 @@ namespace InfrastructureApp.Controllers
             // ViewModel carries both the page items and the state needed to render links.
             var vm = new LatestReportsViewModel
             {
-                // SCRUM-157: Convert the selected page back to the existing list shape used by the view.
-                Reports = reports.ToList(),
-
-                // SCRUM-157: Copy pagination state so the view can render controls later.
+                Reports = reports.ToList(), // Convert the selected page back to the existing list shape used by the view.
                 PageIndex = reports.PageIndex,
                 TotalPages = reports.TotalPages,
                 HasPreviousPage = reports.HasPreviousPage,
                 HasNextPage = reports.HasNextPage,
-                
-                // SCRUM-157: Preserve current search/sort/page-size state for the view.
                 SearchQuery = query,
                 SortOrder = sortOrder,
                 PageSize = pageSize

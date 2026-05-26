@@ -2,7 +2,11 @@
 @using InfrastructureApp.Models
 
 <ul class="navbar-nav d-flex align-items-center text-light gap-3">
-    <li class="nav-item d-flex align-items-center">
+    <li class="nav-item d-flex align-items-center google-translate-nav"
+        tabindex="0"
+        aria-label="Google Translate language selector"
+        onclick="this.querySelector('#google_translate_element select, #google_translate_element a, #google_translate_element button')?.focus()"
+        onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.querySelector('#google_translate_element select, #google_translate_element a, #google_translate_element button')?.focus(); }">
         <!-- SCRUM-134 ADDED:
              Make the Google Translate control read as translation instead of authentication -->
         <span class="text-light me-2">

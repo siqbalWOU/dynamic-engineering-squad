@@ -48,7 +48,7 @@ else
         {
 
             <button type="button"
-                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-start report-item"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-start report-item latest-report-row"
                     data-testid="latest-report-item"
                     aria-controls="reportModal"
                     onclick="window.openLatestReportModal?.(this)"
@@ -56,11 +56,13 @@ else
                     data-bs-toggle="modal" data-bs-target="#reportModal" data-reportid="@r.Id" data-description="@r.Description"
                     data-created="@r.CreatedAt.ToLocalTime().ToString("f")" data-status="@r.Status" data-image="@r.ImageUrl">
 
-                <div class="me-3">
-                    <div class="fw-bold report-text-wrap text-break">@r.Description</div>
+                @* SCRUM-144: Separate description and date areas so long text can be styled without breaking modal behavior. *@
+                <div class="me-3 latest-report-row__content">
+                    @* SCRUM-159: Show a shorter row preview while data-description keeps the full modal text. *@
+                    <div class="fw-bold report-text-wrap text-break latest-report-row__description">@Model.GetDescriptionPreview(r.Description)</div>
                 </div>
 
-                <small class="text-muted">
+                <small class="text-muted latest-report-row__date">
                     @r.CreatedAt.ToLocalTime().ToString("g")
                 </small>
 
