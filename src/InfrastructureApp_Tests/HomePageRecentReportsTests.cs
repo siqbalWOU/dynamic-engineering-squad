@@ -211,6 +211,12 @@ namespace InfrastructureApp_Tests
                 return Task.FromResult(new List<ReportIssue>());
             }
 
+            // SCRUM-157: Test stub for the paginated latest reports repository method.
+            public Task<PaginatedList<ReportIssue>> GetPaginatedLatestReportsAsync(bool isAdmin, string? keyword, string? sort, int pageNumber, int pageSize)
+            {
+                return Task.FromResult(new PaginatedList<ReportIssue>(new List<ReportIssue>(), 0, pageNumber, pageSize));
+            }
+
             public Task<List<ReportIssue>> GetResolvedReportsAsync()
             {
                 return Task.FromResult(new List<ReportIssue>());

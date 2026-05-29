@@ -6,6 +6,7 @@ using InfrastructureApp.Models;
 using InfrastructureApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using NSubstitute;
 using NUnit.Framework;
 
 namespace InfrastructureApp_Tests.PointsShop
@@ -27,7 +28,7 @@ namespace InfrastructureApp_Tests.PointsShop
                 .Options;
 
             _db = new ApplicationDbContext(options);
-            _service = new PointsShopService(_db);
+            _service = new PointsShopService(_db, Substitute.For<IAuditLogService>());
         }
 
         [TearDown]

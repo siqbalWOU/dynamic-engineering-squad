@@ -2,15 +2,14 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using InfrastructureApp.Data;
-using InfrastructureApp.Models;     // ReportIssue entity (EF Core table model)
-using InfrastructureApp.Services;   // NearbyIssueService (class under test)
-using Microsoft.Data.Sqlite;        // SQLite in-memory connection
-using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
+using InfrastructureApp.Models;
+using InfrastructureApp.Services;
+using InfrastructureApp_Tests.Helpers;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Microsoft.AspNetCore.Http;
-
+using NUnit.Framework;
 
 namespace InfrastructureApp_Tests.Services
 {
@@ -25,16 +24,6 @@ namespace InfrastructureApp_Tests.Services
             _links = Substitute.For<LinkGenerator>();
         }
 
-        // ----------------------------
-        // Test helper: Build a SQLite in-memory EF Core database
-        // ----------------------------
-        // Key difference vs EF InMemory provider:
-        // - SQLite is a real relational database engine
-        // - The in-memory database exists ONLY as long as the connection is open
-        //
-        // So this method returns BOTH:
-        // - the DbContext, and
-        // - the open SqliteConnection that must stay alive for the test.
         private static ApplicationDbContext BuildDb(out SqliteConnection conn)
         {
             conn = new SqliteConnection("Filename=:memory:");
@@ -45,54 +34,47 @@ namespace InfrastructureApp_Tests.Services
                 .Options;
 
             var db = new ApplicationDbContext(options);
-
-            // Create tables based on your EF Core model
-            // (without this, SQLite will throw "no such table: ReportIssue")
             db.Database.EnsureCreated();
 
             return db;
         }
 
-        // ----------------------------
-        // Test helper: Create a ReportIssue with common defaults
-        // ----------------------------
-        private static ReportIssue Issue(
+        private static InfrastructureApp.Models.ReportIssue Issue(
             int id,
             decimal? lat,
             decimal? lng,
+            string userId,
             string status = "Approved",
             DateTime? createdAt = null)
         {
-            return new ReportIssue
+            return new InfrastructureApp.Models.ReportIssue
             {
                 Id = id,
                 Status = status,
                 CreatedAt = createdAt ?? DateTime.UtcNow,
                 Latitude = lat,
-                Longitude = lng
+                Longitude = lng,
+                UserId = userId
             };
         }
 
         [Test]
         public async Task GetNearbyIssuesAsync_FiltersOutReportsWithNullCoordinates()
         {
-            // Arrange: create db + keep connection open for the life of the test
             using var db = BuildDb(out var conn);
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
             db.ReportIssue.AddRange(
-                Issue(1, null, -123.23m),      // missing lat => excluded by .Where(...)
-                Issue(2, 44.84m, null),        // missing lng => excluded by .Where(...)
-                Issue(3, 44.84m, -123.23m)     // valid => included
-            );
+                Issue(1, null, -123.23m, "nearby-user"),
+                Issue(2, 44.84m, null, "nearby-user"),
+                Issue(3, 44.84m, -123.23m, "nearby-user"));
             await db.SaveChangesAsync();
 
-            // Act
             var results = await service.GetNearbyIssuesAsync(44.84, -123.23, 5);
 
-            // Assert
             Assert.That(results.Select(r => r.Id), Is.EquivalentTo(new[] { 3 }));
         }
 
@@ -103,17 +85,15 @@ namespace InfrastructureApp_Tests.Services
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
-            // One issue at query point (distance ~ 0) so it will always pass radius=5
-            db.ReportIssue.Add(Issue(1, 44.84m, -123.23m));
+            db.ReportIssue.Add(Issue(1, 44.84m, -123.23m, "nearby-user"));
             await db.SaveChangesAsync();
 
-            // Act
             var resultsInvalidLow = await service.GetNearbyIssuesAsync(44.84, -123.23, 0);
             var resultsInvalidHigh = await service.GetNearbyIssuesAsync(44.84, -123.23, 500);
             var resultsDefault = await service.GetNearbyIssuesAsync(44.84, -123.23, 5);
 
-            // Assert: invalid radii behave the same as radius=5
             Assert.That(resultsInvalidLow.Select(x => x.Id), Is.EquivalentTo(resultsDefault.Select(x => x.Id)));
             Assert.That(resultsInvalidHigh.Select(x => x.Id), Is.EquivalentTo(resultsDefault.Select(x => x.Id)));
         }
@@ -125,25 +105,20 @@ namespace InfrastructureApp_Tests.Services
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
             const double qLat = 44.84;
             const double qLng = -123.23;
 
-            // At center => distance ~ 0
-            db.ReportIssue.Add(Issue(1, (decimal)qLat, (decimal)qLng));
-
-            // ~0.20 degrees lat away ≈ ~13.8 miles
-            db.ReportIssue.Add(Issue(2, 45.04m, -123.23m));
-
+            db.ReportIssue.Add(Issue(1, (decimal)qLat, (decimal)qLng, "nearby-user"));
+            db.ReportIssue.Add(Issue(2, 45.04m, -123.23m, "nearby-user"));
             await db.SaveChangesAsync();
 
-            // radius 1 mile => only issue 1
             var within1Mile = await service.GetNearbyIssuesAsync(qLat, qLng, 1);
             Assert.That(within1Mile.Select(r => r.Id), Is.EquivalentTo(new[] { 1 }));
             Assert.That(within1Mile.Single().DistanceMiles, Is.Not.Null);
             Assert.That(within1Mile.Single().DistanceMiles!.Value, Is.LessThan(0.05));
 
-            // radius 20 miles => both
             var within20Miles = await service.GetNearbyIssuesAsync(qLat, qLng, 20);
             Assert.That(within20Miles.Select(r => r.Id), Is.EquivalentTo(new[] { 1, 2 }));
             Assert.That(within20Miles.First(r => r.Id == 2).DistanceMiles, Is.GreaterThan(10.0));
@@ -156,15 +131,15 @@ namespace InfrastructureApp_Tests.Services
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
             const double qLat = 44.84;
             const double qLng = -123.23;
 
             db.ReportIssue.AddRange(
-                Issue(1, 44.841m, -123.23m), // closest
-                Issue(2, 44.850m, -123.23m), // farther
-                Issue(3, 44.900m, -123.23m)  // farthest
-            );
+                Issue(1, 44.841m, -123.23m, "nearby-user"),
+                Issue(2, 44.850m, -123.23m, "nearby-user"),
+                Issue(3, 44.900m, -123.23m, "nearby-user"));
             await db.SaveChangesAsync();
 
             var results = await service.GetNearbyIssuesAsync(qLat, qLng, 50);
@@ -180,11 +155,11 @@ namespace InfrastructureApp_Tests.Services
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
-            // 350 issues at query point => all within radius => output should be capped by Take(300)
             for (int i = 1; i <= 350; i++)
             {
-                db.ReportIssue.Add(Issue(i, 44.84m, -123.23m));
+                db.ReportIssue.Add(Issue(i, 44.84m, -123.23m, "nearby-user"));
             }
             await db.SaveChangesAsync();
 
@@ -200,6 +175,7 @@ namespace InfrastructureApp_Tests.Services
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
             var created = new DateTime(2026, 2, 24, 12, 0, 0, DateTimeKind.Utc);
 
@@ -207,9 +183,9 @@ namespace InfrastructureApp_Tests.Services
                 id: 99,
                 lat: 44.84m,
                 lng: -123.23m,
+                userId: "nearby-user",
                 status: "Approved",
-                createdAt: created
-            ));
+                createdAt: created));
             await db.SaveChangesAsync();
 
             var results = await service.GetNearbyIssuesAsync(44.84, -123.23, 5);
@@ -231,8 +207,9 @@ namespace InfrastructureApp_Tests.Services
             using var connection = conn;
 
             var service = new NearbyIssueService(db, _links);
+            await ReportIssueTestDataHelper.EnsureTestUserAsync(db, "nearby-user");
 
-            db.ReportIssue.Add(Issue(1, 44.84m, -123.23m));
+            db.ReportIssue.Add(Issue(1, 44.84m, -123.23m, "nearby-user"));
             await db.SaveChangesAsync();
 
             db.ChangeTracker.Clear();

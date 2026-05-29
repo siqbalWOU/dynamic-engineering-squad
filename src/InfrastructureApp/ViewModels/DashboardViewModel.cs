@@ -14,6 +14,20 @@ namespace InfrastructureApp.ViewModels
         // Total number of reports submitted by the user
         public int ReportsSubmitted { get; set; }
 
+        // SCRUM-142: Status counts for the logged-in user's submitted reports.
+        public List<DashboardReportStatusSummaryViewModel> ReportStatusSummary { get; set; } = new();
+
+        // SCRUM-143: Activity progress label based on the logged-in user's report count.
+        public string ReportActivityProgressLabel { get; set; } = string.Empty;
+
+        // SCRUM-137: Reports submitted by the logged-in user for the private Dashboard.
+        public List<DashboardSubmittedReportViewModel> SubmittedReports { get; set; } = new();
+
+        // Public profile contribution feed (paginated, approved reports only).
+        public List<PublicProfileReportViewModel> PublicProfileReports { get; set; } = new();
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
+
         // Current points earned by the user
         public int Points { get; set; }
 

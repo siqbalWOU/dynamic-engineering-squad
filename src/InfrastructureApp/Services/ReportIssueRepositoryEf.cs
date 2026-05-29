@@ -20,7 +20,9 @@ namespace InfrastructureApp.Services
         //queries the reports table and returns report if found
         public Task<ReportIssue?> GetByIdAsync(int id)
         {
-            return _db.ReportIssue.FirstOrDefaultAsync(r => r.Id == id);
+            return _db.ReportIssue
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
 
         //adds a new report report to EF's change tracker
@@ -79,6 +81,19 @@ namespace InfrastructureApp.Services
 
             // Execute query and return results
             return await query.ToListAsync();
+        }
+
+        // Applies the existing latest reports pipeline before paging results.
+        public async Task<PaginatedList<ReportIssue>> GetPaginatedLatestReportsAsync(bool isAdmin, string? keyword, string? sort, int pageNumber, int pageSize)
+        {
+            var query = _db.ReportIssue.AsQueryable();
+
+            // Keep the same Latest Reports rules, then page the final ordered result.
+            query = ReportIssue.VisibleToUser(query, isAdmin);
+            query = ReportIssue.FilterByDescription(query, keyword);
+            query = ReportIssue.ApplyDateSort(query, sort);
+
+            return await PaginatedList<ReportIssue>.CreateAsync(query, pageNumber, pageSize);
         }
     }
 }

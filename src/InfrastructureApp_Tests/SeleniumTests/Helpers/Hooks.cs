@@ -22,7 +22,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         [AfterTestRun]
         public static async Task AfterTestRun()
         {
-            await OneTimeTearDownStatic();
+            await Task.CompletedTask;
         }
     }
 }

@@ -19,16 +19,17 @@ namespace InfrastructureApp.Controllers
             _dashboardRepo = dashboardRepo;
         }
 
-        // GET: /Dashboard
-        // If username is provided, shows that user's dashboard; otherwise shows the logged-in user's own dashboard.
+        // GET: /Dashboard or /Dashboard?username=alice&page=2
+        // With username: shows that user's public profile (paginated).
+        // Without username: shows the logged-in user's private dashboard.
         [HttpGet]
-        public async Task<IActionResult> Index(string? username = null)
+        public async Task<IActionResult> Index(string? username = null, int page = 1)
         {
             DashboardViewModel vm;
 
             if (!string.IsNullOrWhiteSpace(username))
             {
-                var profile = await _dashboardRepo.GetPublicProfileAsync(username);
+                var profile = await _dashboardRepo.GetPublicProfileAsync(username, page);
                 if (profile == null) return NotFound();
                 vm = profile;
             }

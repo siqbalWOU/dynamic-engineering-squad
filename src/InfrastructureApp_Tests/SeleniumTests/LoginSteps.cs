@@ -74,15 +74,16 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public void WhenILogInWithUsernameAndPassword(string username, string password)
         {
             Driver.Navigate().GoToUrl($"{BaseUrl}/Account/Login");
-            
-            var wait = new OpenQA.Selenium.Support.UI.WebDriverWait(Driver, TimeSpan.FromSeconds(5));
-            wait.Until(d => d.FindElement(By.Id("UserName")));
 
-            Driver.FindElement(By.Id("UserName")).Clear();
-            Driver.FindElement(By.Id("UserName")).SendKeys(username);
-            Driver.FindElement(By.Id("Password")).Clear();
-            Driver.FindElement(By.Id("Password")).SendKeys(password);
-            Driver.FindElement(By.CssSelector("input[type='submit']")).Click();
+            var usernameInput = WaitForVisible(By.CssSelector("[data-testid='login-username']"));
+            var passwordInput = WaitForVisible(By.CssSelector("[data-testid='login-password']"));
+            var submitButton = WaitForClickable(By.CssSelector("[data-testid='login-submit']"));
+
+            usernameInput.Clear();
+            usernameInput.SendKeys(username);
+            passwordInput.Clear();
+            passwordInput.SendKeys(password);
+            submitButton.Click();
         }
 
         [Then(@"I should be redirected to the home page")]

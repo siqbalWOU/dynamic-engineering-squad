@@ -34,6 +34,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+temp/
 
 # .NET Core
 project.lock.json

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Traffic light</title>
+  <rect width="160" height="160" rx="28" fill="#eef2f6"/>
+  <rect x="58" y="24" width="44" height="84" rx="18" fill="#1f2937"/>
+  <circle cx="80" cy="46" r="11" fill="#ef4444"/>
+  <circle cx="80" cy="66" r="11" fill="#facc15"/>
+  <circle cx="80" cy="86" r="11" fill="#22c55e"/>
+  <rect x="74" y="108" width="12" height="24" rx="6" fill="#4b5563"/>
+</svg>

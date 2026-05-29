@@ -1,0 +1,36 @@
+<div class="modal fade" id="flagModal" data-testid="flag-modal" tabindex="-1" aria-labelledby="flagModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="flagModalLabel"><i class="fa-solid fa-flag me-2 text-danger"></i>Report Inappropriate Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please select a reason for flagging this content:</p>
+                <form id="flagForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="flagReportId" name="reportId" value="" />
+                    <div class="mb-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="category" id="catMisinfo" value="Misinformation" checked>
+                            <label class="form-check-label" for="catMisinfo">Misinformation</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="category" id="catSpam" value="Spam">
+                            <label class="form-check-label" for="catSpam">Spam</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="category" id="catInvalid" value="Invalid report">
+                            <label class="form-check-label" for="catInvalid">Invalid report</label>
+                        </div>
+                    </div>
+                </form>
+                <div id="flagMessage" class="alert d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="submitFlagBtn" class="btn btn-danger">Submit Report</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+@model InfrastructureApp.ViewModels.Minigames.TriviaQuestionViewModel
+
+<fieldset class="trivia-question" data-question-id="@Model.QuestionId" data-question-type="@Model.QuestionType">
+    <legend class="h5 mb-3">@Model.Prompt</legend>
+
+    @if (Model.QuestionType == InfrastructureApp.Services.Minigames.TriviaQuestionTypes.Text)
+    {
+        <input class="form-control form-control-lg"
+               type="text"
+               id="triviaTextAnswer"
+               placeholder="@Model.TextPlaceholder"
+               autocomplete="off" />
+    }
+    else if (Model.QuestionType == InfrastructureApp.Services.Minigames.TriviaQuestionTypes.Dropdown)
+    {
+        <label class="form-label" for="triviaDropdownAnswer">Choose one answer</label>
+        <select id="triviaDropdownAnswer" class="form-select form-select-lg">
+            <option value="">Select an answer</option>
+            @foreach (var option in Model.Options)
+            {
+                <option value="@option.OptionKey">@option.Label</option>
+            }
+        </select>
+    }
+    else
+    {
+        @foreach (var option in Model.Options)
+        {
+            var optionId = $"{Model.QuestionId}-{option.OptionKey}";
+            <div class="form-check trivia-option">
+                <input class="form-check-input"
+                       type="radio"
+                       name="@Model.QuestionId"
+                       id="@optionId"
+                       value="@option.OptionKey" />
+                <label class="form-check-label" for="@optionId">@option.Label</label>
+            </div>
+        }
+    }
+</fieldset>

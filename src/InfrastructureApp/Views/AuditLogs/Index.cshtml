@@ -1,0 +1,86 @@
+@model InfrastructureApp.ViewModels.AuditLogs.AuditLogsIndexViewModel
+
+@{
+    ViewData["Title"] = "Audit Logs";
+}
+
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1"><i class="fa-solid fa-clipboard-list me-2 text-warning"></i>Audit Logs</h1>
+        <p class="text-muted mb-0">Audit log entries. This page is read-only.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm bg-dark text-light border-secondary">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-striped table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">UserName</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Timestamp (UTC)</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-muted">No audit logs are available yet.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var log in Model.Items)
+                        {
+                            <tr>
+                                <td>@log.Id</td>
+                                <td>@(string.IsNullOrWhiteSpace(log.UserName) ? "(unknown)" : log.UserName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(log.Role) ? "-" : log.Role)</td>
+                                <td>@log.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                <td>@(string.IsNullOrWhiteSpace(log.Email) ? "-" : log.Email)</td>
+                                <td>@log.Action</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4">
+            <p class="text-muted mb-0">
+                Page @Model.CurrentPage of @Model.TotalPages
+            </p>
+            <nav aria-label="Audit log pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(Model.HasPreviousPage ? string.Empty : "disabled")">
+                        @if (Model.HasPreviousPage)
+                        {
+                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)">Previous</a>
+                        }
+                        else
+                        {
+                            <span class="page-link">Previous</span>
+                        }
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Page @Model.CurrentPage / @Model.TotalPages</span>
+                    </li>
+                    <li class="page-item @(Model.HasNextPage ? string.Empty : "disabled")">
+                        @if (Model.HasNextPage)
+                        {
+                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)">Next</a>
+                        }
+                        else
+                        {
+                            <span class="page-link">Next</span>
+                        }
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>

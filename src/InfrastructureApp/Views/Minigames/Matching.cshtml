@@ -1,0 +1,81 @@
+@model InfrastructureApp.ViewModels.Minigames.MatchingViewModel
+
+@{
+    ViewData["Title"] = "Image Matching";
+}
+
+<link rel="stylesheet" href="~/css/minigames.css" asp-append-version="true" />
+
+<div class="minigame-shell" data-testid="matching-page">
+    @Html.AntiForgeryToken()
+
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="mb-1"><i class="fa-solid fa-layer-group me-2 text-warning"></i>Infrastructure Image Matching</h1>
+            <p class="text-muted mb-0">Match all infrastructure card pairs. Each completed board awards 1 point, up to 5 per day.</p>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Current Balance</div>
+                    <div id="matchingCurrentPoints" class="fs-3 fw-bold text-warning">@Model.CurrentPoints</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm minigame-balance-card">
+                <div class="card-body">
+                    <div class="text-muted text-uppercase small">Today's Progress</div>
+                    <div id="matchingDailyProgress" class="fs-3 fw-bold text-info">@Model.DailyPointsEarned / @Model.PointsAvailable</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div id="matchingResult" class="alert @(Model.HasReachedDailyLimit ? "alert-warning" : "alert-secondary") mb-3">
+                        @if (Model.HasReachedDailyLimit)
+                        {
+                            <span>You already reached today's 5-point matching limit. You can still play the board for practice.</span>
+                        }
+                        else
+                        {
+                            <span>Flip cards and find all matching pairs. Each cleared board earns 1 point.</span>
+                        }
+                    </div>
+
+                    <div id="matchingBoard"
+                         class="matching-board"
+                         data-complete-url="@Url.Action("CompleteGame", "Minigames")"
+                         data-game-key="matching">
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button id="matchingRestartButton" type="button" class="btn btn-primary">Shuffle Board</button>
+                        <button id="matchingMuteButton" type="button" class="btn btn-outline-secondary">Mute Music</button>
+                        <a class="btn btn-outline-light border" href="@Url.Action("Index", "Minigames")">Back to Minigames</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5">How it works</h2>
+                    <ul class="text-muted ps-3 mb-0">
+                        <li>Cards start face down and are shuffled in the browser.</li>
+                        <li>Matched pairs stay face up.</li>
+                        <li>When all pairs are matched, you get 1 point, up to 5 per day.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/minigames/minigameAudio.js" asp-append-version="true"></script>
+    <script src="~/js/minigames/matching.js" asp-append-version="true"></script>
+}

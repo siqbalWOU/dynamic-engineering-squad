@@ -61,7 +61,12 @@ else
             <img src="@entry.AvatarUrl" alt="avatar"
                  style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--dark-border);" />
         </td>
-        <td class="fw-semibold text-muted" style="vertical-align: middle;">@entry.UserId</td>
+        <td style="vertical-align: middle;">
+            <a href="/Dashboard?username=@entry.UserId"
+               data-testid="leaderboard-username-link"
+               class="fw-semibold text-decoration-none"
+               style="color: var(--safety-orange);">@entry.UserId</a>
+        </td>
         <td style="vertical-align: middle;"><span class="text-safety-blue fw-bold">@entry.UserPoints</span></td>
         <td class="text-muted small" style="vertical-align: middle;">@entry.UpdatedAtUtc.ToLocalTime().ToString("g")</td>
     </tr>

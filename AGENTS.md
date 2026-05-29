@@ -68,6 +68,15 @@ A two-layer moderation approach:
 *   **UserPoints:** Tracks `CurrentPoints` and `LifetimePoints`.
 *   **Point Awarding:** Users earn 10 points for every moderated report submission.
 
+### D. Audit Logging (`AuditLogService`)
+*   **Separate Feature:** Audit logging is a standalone admin feature and must remain completely separate from `ModerationActionLogs`.
+*   **Server-Side Only:** Audit logs are written only by server code. Never accept audit log fields from form posts, JavaScript, or other client input.
+*   **Append-Only:** Audit logs are read-only after creation. Normal users cannot view, edit, delete, or otherwise manage them.
+*   **Captured Fields:** Each log entry stores `Id`, `AspNetUserId`, `UserName`, `Email`, `Role`, `TimestampUtc`, and `Action`.
+*   **Best-Effort Logging:** Logging failures must be caught and written through `ILogger`; audit logging must never block or break the main workflow.
+*   **Current Logged Actions:** Registration, login, user role changes, minigame play results, issue flagging, report submission, report verification, points shop purchases, and avatar changes.
+*   **Admin Access:** Audit logs are exposed through an admin-only read-only page that shows newest entries first and is limited to the latest 100 records.
+
 ---
 
 ## 7. Testing Strategy
@@ -77,14 +86,7 @@ A two-layer moderation approach:
 
 ---
 
-## 8. Future Reference for Agents                                                                           
-**Naming Rights:** Planned feature for users to title specific hazards. Currently uses `Description`.   
-**Cost Estimation:** Conceptual feature for AI-driven damage analysis.                                  
-**Moderation Files:** `Data/Moderation/badWords.txt` and `descriptionSuggestions.json`. 
-
----
-
-## 9. Safety & DevOps
+## 8. Safety & DevOps
 *   **Secrets Management:** **NEVER** commit API keys or connection strings. Use `dotnet user-secrets` for local development (OpenAI, Google Maps, etc.).
 *   **Database Migrations:** Use **EF Core Migrations** for all schema changes. Ensure migrations are generated and tested locally before inclusion in a PR.
 *   **Verification Workflow:** 
@@ -92,4 +94,14 @@ A two-layer moderation approach:
     2.  Ensure all NUnit and Jest tests pass.
     3.  Verify via CI gatekeeper on the `upstream/dev` PR.
     *   *Note:* There is no staging environment; local and CI verification are the final gates.
+
+---
+
+## 9. Temp Files
+* Do not create temp, build, or scratch folders in the project root.
+* All generated files must go into appropriate directories:
+    1. wwwroot/js for scripts
+    2. wwwroot/css for styles
+    3. Views for Razor pages
+    4. Services/Controllers for backend logic
 

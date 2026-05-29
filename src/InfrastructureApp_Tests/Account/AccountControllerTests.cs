@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using InfrastructureApp.Services;
+using System.Security.Claims;
 
 namespace InfrastructureApp_Tests.Account;
 
@@ -21,6 +22,7 @@ public class AccountControllerTests
     private Mock<IAvatarService> _mockAvatarService;
     private Mock<IUserService> _mockUserService;
     private Mock<IEmailService> _mockEmailService;
+    private Mock<IAuditLogService> _mockAuditLogService;
     private Mock<ILogger<AccountController>> _mockLogger;
     private Mock<IUrlHelper> _mockUrlHelper;
     private AccountController _controller;
@@ -42,6 +44,7 @@ public class AccountControllerTests
         _mockAvatarService = new Mock<IAvatarService>();
         _mockUserService = new Mock<IUserService>();
         _mockEmailService = new Mock<IEmailService>();
+        _mockAuditLogService = new Mock<IAuditLogService>();
         _mockLogger = new Mock<ILogger<AccountController>>();
         _mockUrlHelper = new Mock<IUrlHelper>();
         
@@ -51,6 +54,7 @@ public class AccountControllerTests
             _mockAvatarService.Object, 
             _mockUserService.Object,
             _mockEmailService.Object,
+            _mockAuditLogService.Object,
             _mockLogger.Object);
             
         var httpContext = new DefaultHttpContext();
@@ -266,5 +270,23 @@ public class AccountControllerTests
         var viewResult = result as ViewResult;
         Assert.That(viewResult.ViewName, Is.EqualTo("RegisterConfirmation"));
         _mockEmailService.Verify(x => x.SendEmailAsync("test@test.com", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Test]
+    public async Task Logout_LogsAuditEntryBeforeSigningOut()
+    {
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "user-123")
+            }, "TestAuth"));
+
+        var result = await _controller.Logout();
+
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        _mockAuditLogService.Verify(
+            x => x.LogAsync("User logout succeeded.", "user-123", It.IsAny<CancellationToken>()),
+            Times.Once);
+        _mockSignInManager.Verify(x => x.SignOutAsync(), Times.Once);
     }
 }

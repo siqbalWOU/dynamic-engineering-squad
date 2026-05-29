@@ -1,0 +1,279 @@
+.minigame-balance-card {
+    min-width: 220px;
+}
+
+.minigame-card {
+    border: 1px solid rgba(255, 193, 7, 0.15);
+    overflow: hidden;
+}
+
+.minigame-card-image {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-bottom: 1px solid rgba(255, 193, 7, 0.12);
+    background: linear-gradient(180deg, #eef2f6, #dce4ec);
+}
+
+.minigame-shell .card {
+    border: 1px solid rgba(255, 193, 7, 0.12);
+}
+
+.slots-reels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.slots-reel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 130px;
+    border-radius: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(160deg, #2f3640, #15191f);
+    border: 1px solid rgba(255, 193, 7, 0.25);
+    color: #f8f9fa;
+    padding: 1rem;
+}
+
+.slots-symbol-image {
+    width: min(92px, 100%);
+    height: 92px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.25));
+}
+
+.slots-reel-placeholder {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.matching-board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.matching-card {
+    position: relative;
+    min-height: 110px;
+    border: 1px solid rgba(255, 193, 7, 0.25);
+    border-radius: 1rem;
+    background: linear-gradient(160deg, #24303f, #11161d);
+    color: #f8f9fa;
+    transform-style: preserve-3d;
+    transition: transform 0.25s ease, border-color 0.2s ease;
+    padding: 0;
+}
+
+.matching-card:hover {
+    border-color: rgba(255, 193, 7, 0.5);
+}
+
+.matching-card.is-flipped,
+.matching-card.is-matched {
+    transform: rotateY(180deg);
+}
+
+.matching-card.is-matched {
+    border-color: rgba(25, 135, 84, 0.65);
+}
+
+.matching-card-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    backface-visibility: hidden;
+    font-weight: 700;
+    text-align: center;
+}
+
+.matching-card-face-front {
+    font-size: 1.5rem;
+}
+
+.matching-card-face-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(160deg, #ffc107, #ffda6a);
+    color: #1c1c1c;
+}
+
+.matching-card-image {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+}
+
+.trivia-question {
+    border: 1px solid rgba(255, 193, 7, 0.18);
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.trivia-option + .trivia-option {
+    margin-top: 0.65rem;
+}
+
+.trivia-complete-panel {
+    border: 1px solid rgba(25, 135, 84, 0.3);
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+    background: rgba(25, 135, 84, 0.08);
+    color: #d1e7dd;
+    font-weight: 600;
+}
+
+.tap-repair-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.tap-repair-stat {
+    border: 1px solid rgba(255, 193, 7, 0.18);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tap-repair-arena {
+    position: relative;
+    min-height: 420px;
+    overflow: hidden;
+    border-radius: 1.2rem;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    background:
+        radial-gradient(circle at 15% 20%, rgba(255, 193, 7, 0.12), transparent 18%),
+        radial-gradient(circle at 80% 18%, rgba(13, 110, 253, 0.12), transparent 20%),
+        linear-gradient(180deg, #4c5866 0%, #2e3843 100%);
+}
+
+.tap-repair-arena::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent calc(50% - 4px),
+            rgba(255, 193, 7, 0.85) calc(50% - 4px),
+            rgba(255, 193, 7, 0.85) calc(50% + 4px),
+            transparent calc(50% + 4px),
+            transparent 100%
+        );
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.tap-repair-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: rgba(15, 19, 25, 0.55);
+    text-align: center;
+    z-index: 1;
+    padding: 1rem;
+}
+
+.tap-repair-overlay-title {
+    color: #f8f9fa;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.tap-repair-pothole {
+    position: absolute;
+    width: 82px;
+    height: 82px;
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 35%, #4f555c 0%, #23282e 55%, #0f1318 100%);
+    box-shadow: inset 0 8px 18px rgba(0, 0, 0, 0.45), 0 8px 18px rgba(0, 0, 0, 0.22);
+    cursor: pointer;
+    z-index: 2;
+    animation: tap-repair-pop 0.15s ease-out;
+}
+
+.tap-repair-pothole:hover {
+    transform: scale(1.06);
+}
+
+.tap-repair-pothole-core {
+    position: absolute;
+    inset: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.85) 0%, rgba(20, 24, 29, 0.98) 100%);
+}
+
+@keyframes tap-repair-pop {
+    from {
+        transform: scale(0.7);
+        opacity: 0.4;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 576px) {
+    .slots-reel {
+        min-height: 96px;
+        font-size: 1rem;
+    }
+
+    .slots-symbol-image {
+        width: 64px;
+        height: 64px;
+    }
+
+    .matching-board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .matching-card {
+        min-height: 92px;
+    }
+
+    .matching-card-image {
+        width: 52px;
+        height: 52px;
+    }
+
+    .trivia-question {
+        padding: 0.9rem;
+    }
+
+    .tap-repair-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .tap-repair-arena {
+        min-height: 340px;
+    }
+
+    .tap-repair-pothole {
+        width: 68px;
+        height: 68px;
+    }
+
+    .tap-repair-pothole-core {
+        inset: 18px;
+    }
+}

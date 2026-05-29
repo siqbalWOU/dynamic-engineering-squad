@@ -23,6 +23,9 @@ namespace InfrastructureApp_Tests
         private IVoteService _voteService = null!;
         private IVerifyFixService _verifyFixService = null!;
         private IFlagService _flagService = null!;
+        private IIssueNameService _issueNameService = null!;
+        private IAuditLogService _auditLogService = null!;
+        private IStatusHistoryService _statusHistoryService = null!;
 
         [SetUp]
         public void SetUp()
@@ -36,6 +39,11 @@ namespace InfrastructureApp_Tests
             _verifyFixService.GetVerifyStatusAsync(Arg.Any<int>(), Arg.Any<string?>())
                 .Returns((0, false));
             _flagService = Substitute.For<IFlagService>();
+            _issueNameService = Substitute.For<IIssueNameService>();
+            _auditLogService = Substitute.For<IAuditLogService>();
+            _statusHistoryService = Substitute.For<IStatusHistoryService>();
+            _statusHistoryService.GetHistoryAsync(Arg.Any<int>())
+                .Returns(Task.FromResult<IReadOnlyList<ReportStatusHistory>>(new List<ReportStatusHistory>()));
         }
 
         [TearDown]
@@ -59,7 +67,7 @@ namespace InfrastructureApp_Tests
 
         private ReportIssueController MakeController(ClaimsPrincipal? user = null)
         {
-            var controller = new ReportIssueController(_service, _userManager, _voteService, _verifyFixService, _flagService);
+            var controller = new ReportIssueController(_service, _userManager, _voteService, _verifyFixService, _flagService, _issueNameService, _auditLogService, _statusHistoryService);
 
             // Set up HttpContext + User
             controller.ControllerContext = new ControllerContext

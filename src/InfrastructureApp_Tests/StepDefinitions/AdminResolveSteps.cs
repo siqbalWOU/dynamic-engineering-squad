@@ -1,6 +1,7 @@
 using System.Net;
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
+using InfrastructureApp_Tests.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -56,17 +57,11 @@ namespace InfrastructureApp_Tests.StepDefinitions
         {
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var report = new ReportIssue
-            {
-                Description = description,
-                Status = "Approved",
-                UserId = "test-user-id",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            db.ReportIssue.Add(report);
-            await db.SaveChangesAsync();
+            var report = await ReportIssueTestDataHelper.CreateTestReportAsync(
+                db,
+                description,
+                "Approved",
+                "test-user-id");
             _lastReportId = report.Id;
         }
 
@@ -75,17 +70,11 @@ namespace InfrastructureApp_Tests.StepDefinitions
         {
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var report = new ReportIssue
-            {
-                Description = description,
-                Status = "Resolved",
-                UserId = "test-user-id",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            db.ReportIssue.Add(report);
-            await db.SaveChangesAsync();
+            var report = await ReportIssueTestDataHelper.CreateTestReportAsync(
+                db,
+                description,
+                "Resolved",
+                "test-user-id");
             _lastReportId = report.Id;
         }
 
@@ -93,6 +82,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public async Task WhenINavigateToThatApprovedReportsDetailsPage()
         {
             _response = await _client.GetAsync($"/ReportIssue/Details/{_lastReportId}");
+            TestContext.WriteLine($"GET /ReportIssue/Details/{_lastReportId} => {(int)_response.StatusCode} {_response.StatusCode}");
             _html = await _response.Content.ReadAsStringAsync();
         }
 
@@ -100,6 +90,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public async Task WhenIRequestTheVerifyStatusForThatReport()
         {
             _response = await _client.GetAsync($"/VerifyFix/Status/{_lastReportId}");
+            TestContext.WriteLine($"GET /VerifyFix/Status/{_lastReportId} => {(int)_response.StatusCode} {_response.StatusCode}");
             _html = await _response.Content.ReadAsStringAsync();
         }
 
@@ -107,6 +98,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         public async Task WhenINavigateToTheVerifyFixesPage()
         {
             _response = await _client.GetAsync("/Reports/Verify");
+            TestContext.WriteLine($"GET /Reports/Verify => {(int)_response.StatusCode} {_response.StatusCode}");
             _html = await _response.Content.ReadAsStringAsync();
         }
 
@@ -125,6 +117,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         [Then("the details page should contain {string}")]
         public void ThenTheDetailsPageShouldContain(string expectedText)
         {
+            Assert.That(_response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"Unexpected status code before asserting page content. Body: {_html}");
             Assert.That(_html, Does.Contain(expectedText));
         }
 
@@ -137,6 +130,7 @@ namespace InfrastructureApp_Tests.StepDefinitions
         [Then("the verify status should contain {string}")]
         public void ThenTheVerifyStatusShouldContain(string expectedText)
         {
+            Assert.That(_response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"Unexpected status code before asserting response content. Body: {_html}");
             Assert.That(_html, Does.Contain(expectedText));
         }
 

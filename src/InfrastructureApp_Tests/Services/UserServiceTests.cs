@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +8,8 @@ using NUnit.Framework;
 using InfrastructureApp.Models;
 using InfrastructureApp.Services;
 using InfrastructureApp.ViewModels.Account;
+using InfrastructureApp.Data;
+using NSubstitute;
 
 namespace InfrastructureApp_Tests.Services;
 
@@ -15,7 +17,7 @@ namespace InfrastructureApp_Tests.Services;
 public class UserServiceTests
 {
     private SqliteConnection _connection = null!;
-    private TestIdentityDbContext _context = null!;
+    private ApplicationDbContext _context = null!;
     private UserManager<Users> _userManager = null!;
     private RoleManager<IdentityRole> _roleManager = null!;
     private UserService _userService = null!;
@@ -28,23 +30,23 @@ public class UserServiceTests
 
         var services = new ServiceCollection();
 
-        services.AddDbContext<TestIdentityDbContext>(options => 
+        services.AddDbContext<ApplicationDbContext>(options => 
             options.UseSqlite(_connection));
 
         services.AddIdentity<Users, IdentityRole>()
-            .AddEntityFrameworkStores<TestIdentityDbContext>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
         services.AddLogging(builder => builder.AddConsole());
 
         var provider = services.BuildServiceProvider();
-        _context = provider.GetRequiredService<TestIdentityDbContext>();
+        _context = provider.GetRequiredService<ApplicationDbContext>();
         _userManager = provider.GetRequiredService<UserManager<Users>>();
         _roleManager = provider.GetRequiredService<RoleManager<IdentityRole>>();
 
         await _context.Database.EnsureCreatedAsync();
 
-        _userService = new UserService(_userManager, _roleManager);
+        _userService = new UserService(_userManager, _roleManager, _context, Substitute.For<IAuditLogService>());
     }
 
     [TearDown]
@@ -52,8 +54,8 @@ public class UserServiceTests
     {
         if (_context != null) await _context.DisposeAsync();
         if (_connection != null) await _connection.DisposeAsync();
-        _userManager.Dispose();
-        _roleManager.Dispose();
+        _userManager?.Dispose();
+        _roleManager?.Dispose();
     }
 
     [Test]
@@ -231,12 +233,4 @@ public class UserServiceTests
             Assert.That(updatedRoles, Contains.Item("User"));
         });
     }
-}
-
-
-// IdentityDbContext for Identity to function correctly in tests.
-public class TestIdentityDbContext : IdentityDbContext<Users>
-{
-    public TestIdentityDbContext(DbContextOptions<TestIdentityDbContext> options) 
-        : base(options) { }
 }

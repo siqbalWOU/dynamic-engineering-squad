@@ -27,7 +27,7 @@
 
     @if (!Model.FlaggedReports.Any())
     {
-        <div class="card shadow-sm border-0 bg-light">
+        <div class="card shadow-sm border-secondary bg-dark text-light">
             <div class="card-body text-center py-5">
                 <i class="bi bi-check2-circle display-1 text-success mb-3"></i>
                 <h3>All Clear!</h3>
@@ -38,8 +38,8 @@
     else
     {
         <div class="table-responsive shadow-sm rounded">
-            <table class="table table-hover align-middle mb-0 bg-white">
-                <thead class="table-dark text-white">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
                     <tr>
                         <th>Report Details</th>
                         <th>Status</th>
@@ -60,7 +60,7 @@
                                     }
                                     else
                                     {
-                                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center text-muted" style="width: 60px; height: 60px;">
+                                        <div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center text-light" style="width: 60px; height: 60px;">
                                             <i class="bi bi-image"></i>
                                         </div>
                                     }
@@ -114,14 +114,14 @@
 <!-- Removal Confirmation Modal -->
 <div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
+        <div class="modal-content bg-dark text-light border-secondary shadow">
+            <div class="modal-header bg-danger text-white border-secondary">
                 <h5 class="modal-title" id="confirmRemoveModalLabel">Confirm Content Removal</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <p>Are you sure you want to <strong>permanently delete</strong> this post?</p>
-                <div class="alert alert-light border mb-0">
+                <div class="alert alert-secondary border border-secondary mb-0">
                     <div class="small text-muted text-uppercase fw-bold mb-1">Post Description</div>
                     <div id="modalReportDesc" class="text-break"></div>
                 </div>
@@ -129,8 +129,8 @@
                     <i class="bi bi-exclamation-triangle-fill me-1"></i>This action cannot be undone and will remove the post from all public views.
                 </p>
             </div>
-            <div class="modal-footer bg-light border-0">
-                <button type="button" class="btn btn-link text-decoration-none text-secondary" data-bs-dismiss="modal">Cancel</button>
+            <div class="modal-footer bg-dark border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form asp-action="Remove" method="post">
                     <input type="hidden" name="reportId" id="modalReportId" value="" />
                     <button type="submit" class="btn btn-danger px-4" id="confirmRemoveBtn">Remove Post</button>

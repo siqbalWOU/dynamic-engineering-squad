@@ -10,11 +10,13 @@ namespace InfrastructureApp.Controllers
     {
         private readonly IVerifyFixService _verifyFixService;
         private readonly UserManager<Users> _userManager;
+        private readonly IAuditLogService _auditLogService;
 
-        public VerifyFixController(IVerifyFixService verifyFixService, UserManager<Users> userManager)
+        public VerifyFixController(IVerifyFixService verifyFixService, UserManager<Users> userManager, IAuditLogService auditLogService)
         {
             _verifyFixService = verifyFixService;
             _userManager = userManager;
+            _auditLogService = auditLogService;
         }
 
         // POST /VerifyFix/Toggle/5
@@ -27,6 +29,11 @@ namespace InfrastructureApp.Controllers
             if (userId == null) return Unauthorized();
 
             var (verifyCount, userHasVerified) = await _verifyFixService.ToggleVerificationAsync(id, userId);
+            await _auditLogService.LogAsync(
+                userHasVerified
+                    ? $"Report verified by user. ReportId={id}; VerifyCount={verifyCount}."
+                    : $"Report verification removed by user. ReportId={id}; VerifyCount={verifyCount}.",
+                userId);
 
             return Json(new
             {
