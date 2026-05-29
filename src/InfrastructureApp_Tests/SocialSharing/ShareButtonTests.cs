@@ -37,7 +37,10 @@ public class ShareButtonTests
 
         var issueNameService = Substitute.For<IIssueNameService>();
         var auditLogService = Substitute.For<IAuditLogService>();
-        _controller = new ReportIssueController(_service, userManager, voteService, verifyFixService, flagService, issueNameService, auditLogService)
+        var statusHistoryService = Substitute.For<IStatusHistoryService>();
+        statusHistoryService.GetHistoryAsync(Arg.Any<int>())
+            .Returns(Task.FromResult<IReadOnlyList<ReportStatusHistory>>(new List<ReportStatusHistory>()));
+        _controller = new ReportIssueController(_service, userManager, voteService, verifyFixService, flagService, issueNameService, auditLogService, statusHistoryService)
         {
             ControllerContext = new ControllerContext
             {

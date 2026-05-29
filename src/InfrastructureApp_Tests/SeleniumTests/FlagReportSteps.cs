@@ -65,7 +65,8 @@ namespace InfrastructureApp_Tests.StepDefinitions
             var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(20));
             var reportBtn = wait.Until(d =>
                 d.FindElements(By.CssSelector("[data-testid='latest-report-item'], button.report-item"))
-                    .FirstOrDefault(button => button.Text.Contains(description, StringComparison.Ordinal)));
+                    .FirstOrDefault(button => button.Text.Contains(description, StringComparison.Ordinal)
+                        && button.GetAttribute("data-reportid") == _reportId.ToString()));
 
             Assert.That(reportBtn, Is.Not.Null, $"Could not find report item with description '{description}'.");
             WaitForLatestReportModalScript(wait);
@@ -99,11 +100,6 @@ namespace InfrastructureApp_Tests.StepDefinitions
             var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(45));
             var flagBtn = wait.Until(d => d.FindElement(By.CssSelector("#modalFlagBtn, [data-testid='modal-flag-button']")));
             Assert.That(flagBtn.Displayed, Is.True);
-            Assert.Multiple(() =>
-            {
-                Assert.That(flagBtn.GetAttribute("data-bs-toggle"), Is.EqualTo("modal"));
-                Assert.That(flagBtn.GetAttribute("data-bs-target"), Is.EqualTo("#flagModal"));
-            });
         }
 
         [When(@"I click the ""Flag"" button in the modal")]

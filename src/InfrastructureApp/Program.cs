@@ -144,6 +144,7 @@ builder.Services.AddScoped<IVoteService, VoteService>();
 builder.Services.AddScoped<IIssueNameService, IssueNameService>();
 builder.Services.AddScoped<IVerifyFixService, VerifyFixService>();
 builder.Services.AddScoped<IFlagService, FlagService>();
+builder.Services.AddScoped<IStatusHistoryService, StatusHistoryService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddHttpContextAccessor();
 

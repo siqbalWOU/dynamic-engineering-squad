@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using InfrastructureApp.Data;
 using InfrastructureApp.Models;
+using InfrastructureApp.ViewModels.AuditLogs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,6 +86,38 @@ namespace InfrastructureApp.Services
                 .ThenByDescending(log => log.Id)
                 .Take(normalizedLimit)
                 .ToListAsync(cancellationToken);
+        }
+
+        public async Task<AuditLogsIndexViewModel> GetPageAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        {
+            var normalizedPageSize = pageSize <= 0 ? 50 : pageSize;
+            var totalItems = await _db.AuditLogs.CountAsync(cancellationToken);
+            var totalPages = totalItems == 0
+                ? 1
+                : (int)Math.Ceiling(totalItems / (double)normalizedPageSize);
+
+            var safePage = page < 1 ? 1 : page;
+            if (safePage > totalPages)
+            {
+                safePage = totalPages;
+            }
+
+            var items = await _db.AuditLogs
+                .AsNoTracking()
+                .OrderByDescending(log => log.TimestampUtc)
+                .ThenByDescending(log => log.Id)
+                .Skip((safePage - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
+                .ToListAsync(cancellationToken);
+
+            return new AuditLogsIndexViewModel
+            {
+                Items = items,
+                CurrentPage = safePage,
+                PageSize = normalizedPageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages
+            };
         }
 
         private static string? ResolveRoleFromClaims(ClaimsPrincipal? principal)

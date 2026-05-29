@@ -405,6 +405,12 @@ namespace InfrastructureApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(currentUserId))
+            {
+                await _auditLogService.LogAsync("User logout succeeded.", currentUserId);
+            }
+
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }

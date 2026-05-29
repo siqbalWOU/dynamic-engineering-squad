@@ -2,36 +2,218 @@
     ViewData["Title"] = "Report Issue";
 }
 
-<div class="container py-4" style="max-width: 680px;">
-    <div class="text-center mb-4">
-        <h1 class="display-6"><i class="fa-solid fa-triangle-exclamation me-2 text-safety-orange"></i>Report an Infrastructure Issue</h1>
-        <p class="lead text-muted">
-            Submit a pothole, broken sign, damaged sidewalk, streetlight issue, or other public hazard.
+@section Styles {
+    <link rel="stylesheet" href="~/css/report-landing.css" asp-append-version="true" />
+}
+
+<main class="report-landing" aria-labelledby="report-landing-title">
+    @* Intro header that sets the purpose of the landing page. *@
+    <section class="report-landing__intro">
+        @* <p class="report-landing__eyebrow">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            Report Issue Guide
+        </p> *@
+        <h1 id="report-landing-title">How to report an issue</h1>
+        <p>
+            Scroll down to see exactly how to document potholes,
+            damaged sidewalks, broken signs, lighting problems, and other public hazards.
         </p>
-    </div>
+    </section>
 
-    <div class="report-card mb-4">
-        <h2 class="h5"><i class="fa-solid fa-list-ol me-2"></i>How to submit an issue</h2>
-        <ol class="mb-0">
-            <li>Click <strong>Report an Issue</strong> below.</li>
-            <li>Add a clear description of the issue.</li>
-            <li>Add an image.</li>
-            <li>Select the location of the issue on the map.</li>
-            <li>Press <strong>Submit</strong> to finish and earn points.</li>
-        </ol>
-    </div>
+    @* Full-screen sticky instructional slides that explain one reporting step at a time. *@
+    <section class="report-slides" aria-label="How to submit a report">
+        <article class="report-slide report-slide--one" aria-labelledby="report-slide-1-title">
+            <div class="report-slide__inner">
+                <div class="report-slide__content">
+                    <span class="report-slide__step">Step 1 of 5</span>
+                    <h2 id="report-slide-1-title">Report an Infrastructure Issue</h2>
+                    <p class="report-slide__description">
+                        Start the reporting flow when you spot a problem in your area and are ready to help
+                        document it for review.
+                    </p>
+                    <div class="report-slide__instruction" role="note" aria-label="Instruction for step one">
+                        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                        <div>
+                            <strong>Instruction</strong>
+                            <span>Click Report an Issue below.</span>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="row g-3 justify-content-center">
-        <div class="col-12 col-md-6">
-            <a class="btn report-action-btn report-action-btn--primary w-100" asp-controller="ReportIssue" asp-action="Create" aria-label="Go to the issue submission form">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>Report an Issue
-            </a>
+                <div class="report-slide__visual">
+                    <figure class="report-slide__frame mb-0">
+                        <img class="report-slide__image"
+                             src="~/Images/RILanding/RIone.png"
+                             asp-append-version="true"
+                             alt="Kyle Glass looking at pothole damage on a road.">
+                        <figcaption class="report-slide__caption">
+                            <i class="fa-solid fa-road" aria-hidden="true"></i>
+                            Capture hazards that affect streets, sidewalks, signs, and lighting.
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </article>
+
+        <article class="report-slide report-slide--two" aria-labelledby="report-slide-2-title">
+            <div class="report-slide__inner">
+                <div class="report-slide__content">
+                    <span class="report-slide__step">Step 2 of 5</span>
+                    <h2 id="report-slide-2-title">Describe the Problem</h2>
+                    <p class="report-slide__description">
+                        A concise, specific description gives reviewers the context they need to understand
+                        what is wrong before they open the full report.
+                    </p>
+                    <div class="report-slide__instruction" role="note" aria-label="Instruction for step two">
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                        <div>
+                            <strong>Instruction</strong>
+                            <span>Add a clear description of the issue.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-slide__visual">
+                    <figure class="report-slide__frame mb-0">
+                        <img class="report-slide__image"
+                             src="~/Images/RILanding/RItwo.png"
+                             asp-append-version="true"
+                             alt="Jimothy Slimm including a description while reporting an issue.">
+                        <figcaption class="report-slide__caption">
+                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                            Explain what is damaged, where it is, and why it matters.
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </article>
+
+        <article class="report-slide report-slide--three" aria-labelledby="report-slide-3-title">
+            <div class="report-slide__inner">
+                <div class="report-slide__content">
+                    <span class="report-slide__step">Step 3 of 5</span>
+                    <h2 id="report-slide-3-title">Upload a Photo</h2>
+                    <p class="report-slide__description">
+                        A strong image helps verify the condition quickly and makes the report easier to
+                        review and prioritize.
+                    </p>
+                    <div class="report-slide__instruction" role="note" aria-label="Instruction for step three">
+                        <i class="fa-solid fa-camera" aria-hidden="true"></i>
+                        <div>
+                            <strong>Instruction</strong>
+                            <span>Add an image.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-slide__visual">
+                    <figure class="report-slide__frame mb-0">
+                        <img class="report-slide__image"
+                             src="~/Images/RILanding/RIthree.png"
+                             asp-append-version="true"
+                             alt="Maria Gonzalez taking a picture of the pothole to upload onto the webapp.">
+                        <figcaption class="report-slide__caption">
+                            <i class="fa-solid fa-image" aria-hidden="true"></i>
+                            Use a clear photo that shows the issue from a safe viewpoint.
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </article>
+
+        <article class="report-slide report-slide--four" aria-labelledby="report-slide-4-title">
+            <div class="report-slide__inner">
+                <div class="report-slide__content">
+                    <span class="report-slide__step">Step 4 of 5</span>
+                    <h2 id="report-slide-4-title">Pin the Location</h2>
+                    <p class="report-slide__description">
+                        Accurate location data keeps city staff from wasting time and helps them connect your
+                        report to the exact place that needs attention.
+                    </p>
+                    <div class="report-slide__instruction" role="note" aria-label="Instruction for step four">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        <div>
+                            <strong>Instruction</strong>
+                            <span>Select the location of the issue on the map.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-slide__visual">
+                    <figure class="report-slide__frame mb-0">
+                        <img class="report-slide__image"
+                             src="~/Images/RILanding/RIfour.png"
+                             asp-append-version="true"
+                             alt="Google maps showing the pins that were placed.">
+                        <figcaption class="report-slide__caption">
+                            <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+                            Drop the pin where the problem is actually located.
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </article>
+
+        <article class="report-slide report-slide--five" aria-labelledby="report-slide-5-title">
+            <div class="report-slide__inner">
+                <div class="report-slide__content">
+                    <span class="report-slide__step">Step 5 of 5</span>
+                    <h2 id="report-slide-5-title">Earn Points</h2>
+                    <p class="report-slide__description">
+                        Finish the form to send your report for moderation and receive points for helping
+                        improve the community.
+                    </p>
+                    <div class="report-slide__instruction" role="note" aria-label="Instruction for step five">
+                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        <div>
+                            <strong>Instruction</strong>
+                            <span>Press Submit to finish and earn points.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-slide__visual">
+                    <figure class="report-slide__frame mb-0">
+                        <img class="report-slide__image"
+                             src="~/Images/RILanding/RIfive.png"
+                             asp-append-version="true"
+                             alt="Denise Green jumping for joy after submitting a report.">
+                        <figcaption class="report-slide__caption">
+                            <i class="fa-solid fa-award" aria-hidden="true"></i>
+                            Submission completes the report and contributes to your points total.
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    @* Final call-to-action section that preserves the existing MVC routes and actions. *@
+    <section class="report-cta" aria-labelledby="report-cta-title">
+        <div class="report-cta__inner">
+            <div class="report-cta__card">
+                <div class="report-cta__icon" aria-hidden="true">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <h2 id="report-cta-title">Ready to submit a report?</h2>
+                <p>
+                    Move into the reporting form to document the issue, or return home if you are not ready yet.
+                </p>
+                <div class="report-cta__actions">
+                    <a class="btn report-action-btn report-action-btn--primary"
+                       asp-controller="ReportIssue"
+                       asp-action="Create"
+                       aria-label="Go to the issue submission form">
+                        <i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>Report an Issue
+                    </a>
+                    <a class="btn report-action-btn report-action-btn--secondary"
+                       asp-controller="Home"
+                       asp-action="Index"
+                       aria-label="Return to the home page">
+                        <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>Back Home
+                    </a>
+                </div>
+            </div>
         </div>
-
-        <div class="col-12 col-md-3">
-            <a class="btn report-action-btn w-100" asp-controller="Home" asp-action="Index" aria-label="Return to the home page">
-                <i class="fa-solid fa-arrow-left me-1"></i>Back to Home
-            </a>
-        </div>
-    </div>
-</div>
+    </section>
+</main>

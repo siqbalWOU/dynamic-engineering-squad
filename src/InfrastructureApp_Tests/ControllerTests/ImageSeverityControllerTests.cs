@@ -136,7 +136,10 @@ namespace InfrastructureApp_Tests.ControllerTests
 
             var issueNameService = Substitute.For<IIssueNameService>();
             var auditLogService = Substitute.For<IAuditLogService>();
-            return new ReportIssueController(service, userManager, voteService, verifyFixService, flagService, issueNameService, auditLogService)
+            var statusHistoryService = Substitute.For<IStatusHistoryService>();
+            statusHistoryService.GetHistoryAsync(Arg.Any<int>())
+                .Returns(Task.FromResult<IReadOnlyList<ReportStatusHistory>>(new List<ReportStatusHistory>()));
+            return new ReportIssueController(service, userManager, voteService, verifyFixService, flagService, issueNameService, auditLogService, statusHistoryService)
             {
                 ControllerContext = new ControllerContext
                 {

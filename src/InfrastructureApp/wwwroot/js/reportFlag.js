@@ -68,6 +68,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (flagReportIdInput) {
             flagReportIdInput.value = reportId;
         }
+        if (flagModalEl) {
+            flagModalEl.dataset.pendingReportId = reportId;
+        }
+
+        // Bootstrap 5 doesn't support stacked modals — close any open modal first.
+        const openModal = document.querySelector('.modal.show:not(#flagModal)');
+        if (openModal && window.bootstrap?.Modal) {
+            const instance = bootstrap.Modal.getInstance(openModal);
+            if (instance) {
+                openModal.addEventListener('hidden.bs.modal', function handler() {
+                    openModal.removeEventListener('hidden.bs.modal', handler);
+                    showFlagModal();
+                });
+                instance.hide();
+                return;
+            }
+        }
 
         showFlagModal();
     };
@@ -82,9 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (submitFlagBtn && flagForm) {
         submitFlagBtn.addEventListener('click', async () => {
-            const reportId = flagReportIdInput.value;
+            const reportId = (flagReportIdInput && flagReportIdInput.value)
+                || (flagModalEl && flagModalEl.dataset.pendingReportId)
+                || '';
             const categoryElement = flagForm.querySelector('input[name="category"]:checked');
-            
+
             if (!reportId || !categoryElement) return;
             
             const category = categoryElement.value;
@@ -128,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     setTimeout(() => {
                         hideFlagModal();
-                    }, 1500);
+                    }, 4000);
                 } else {
                     flagMessage.textContent = result.message || 'An error occurred.';
                     flagMessage.classList.remove('d-none', 'alert-success');

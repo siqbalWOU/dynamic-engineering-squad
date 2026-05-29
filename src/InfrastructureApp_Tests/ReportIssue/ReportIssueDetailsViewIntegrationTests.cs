@@ -103,6 +103,7 @@ public class ReportIssueDetailsViewIntegrationTests
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(html, Does.Contain("Reported By"));
         Assert.That(html, Does.Contain("reporter1"));
         Assert.That(html, Does.Contain("reporter-profile-link"));
     }
